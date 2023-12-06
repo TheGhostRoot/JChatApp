@@ -34,6 +34,7 @@ class Cryption {
       return null;
     }
 
+
     return algorithm.decrypt64(cipherText);
   }
 

@@ -67,11 +67,11 @@ class JwtHandle {
 
   String? generateUserJwt(Map<dynamic, dynamic> claims, String? signatureKey,
       String? encryptionKey) {
-    if (signatureKey == null) {
+    if (signatureKey == null || signatureKey.isEmpty) {
       return null;
     }
 
-    if (encryptionKey != null) {
+    if (encryptionKey != null && encryptionKey.isNotEmpty) {
       return _cryptionHandle.userEncrypt(JWT(claims).trySign(SecretKey(signatureKey), noIssueAt: true), encryptionKey);
     }
 
