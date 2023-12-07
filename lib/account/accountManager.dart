@@ -14,10 +14,10 @@ class AccountManager {
         .hash;
   }
 
-  static Future<bool?> createAccount(String? name, String? email,
+  static Future<bool> createAccount(String? name, String? email,
       String? password, Map<dynamic, dynamic>? moreSecurity) async {
     if (name == null || email == null || password == null) {
-      return null;
+      return false;
     }
 
     if (password.length > 100) {
@@ -69,7 +69,7 @@ class AccountManager {
 
     String? settingsJwt = ConfigStuff.jwt.generateGlobalJwt(settings, false);
     if (settingsJwt == null) {
-      return null;
+      return false;
     }
 
     Map<dynamic, dynamic> claims = {};
@@ -80,31 +80,28 @@ class AccountManager {
 
     String? authToken = ConfigStuff.jwt.generateGlobalJwt(claims, true);
     if (authToken == null) {
-      return null;
+      return false;
     }
 
     String? captcha_data =
         ConfigStuff.cryption.globalEncrypt(ConfigStuff.captcha_id as String);
     if (captcha_data == null) {
-      return null;
+      return false;
     }
 
     Map<String, String> header = {};
     header[ConfigStuff.HEADER_AUTH] = authToken;
     header[ConfigStuff.HEADER_CAPTCHA] = captcha_data;
 
-    String? res = await Requests.post(ConfigStuff.server, headers: header);
-    if (res == null) {
-      throw Exception("Can't connect to servers.");
-    }
+    String? res = await Requests.post(ConfigStuff.server + "/account", headers: header);
 
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, null, null);
+    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, global: true);
     if (data == null) {
-      throw Exception("Can't read the server response.");
+      return false;
     }
 
     if (!data.containsKey("id") || data["id"] == 0) {
-      throw Exception("Server can't create this account.");
+      return false;
     }
 
     ConfigStuff.user_id = data["id"];
@@ -112,7 +109,7 @@ class AccountManager {
     return true;
   }
 
-  static Future<bool?> getAccount(String? email, String? password,
+  static Future<bool> getAccount(String? email, String? password,
       Map<dynamic, dynamic>? moreSecurity, int? id) async {
     Map<dynamic, dynamic> claims = {};
     if (email != null && password != null) {
@@ -138,12 +135,8 @@ class AccountManager {
     header[ConfigStuff.HEADER_AUTH] = jwt;
     header[ConfigStuff.HEADER_CAPTCHA] = captchaData;
 
-    String? res = await Requests.post(ConfigStuff.server, headers: header);
-    if (res == null) {
-      return false;
-    }
-
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, null, null);
+    String? res = await Requests.get(ConfigStuff.server + "/account", headers: header);
+    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, global: true);
     if (data == null) {
       return false;
     }
@@ -161,19 +154,19 @@ class AccountManager {
     return true;
   }
 
-  static Future<bool?> updateAccount(Map<dynamic, dynamic> changes) async {
-    String? auth = ConfigStuff.jwt.generateUserJwt(changes, ConfigStuff.USER_SIGN_KEY, ConfigStuff.USER_ENCRYP_KEY);
+  static Future<bool> updateAccount(Map<dynamic, dynamic> changes) async {
+    String? auth = ConfigStuff.jwt.generateUserJwt(changes);
     if (auth == null) {
       return false;
     }
 
-    String? captcha = ConfigStuff.cryption.userEncrypt(ConfigStuff.captcha_id as String, ConfigStuff.USER_ENCRYP_KEY);
+    String? captcha = ConfigStuff.cryption.userEncrypt(ConfigStuff.captcha_id as String);
     if (captcha == null) {
       return false;
     }
 
 
-    String? sess_data = ConfigStuff.cryption.userEncrypt(ConfigStuff.sess_id as String, ConfigStuff.USER_ENCRYP_KEY);
+    String? sess_data = ConfigStuff.cryption.userEncrypt(ConfigStuff.sess_id as String);
     if (sess_data == null) {
       return false;
     }
@@ -183,12 +176,8 @@ class AccountManager {
     header[ConfigStuff.HEADER_SESS] = sess_data;
     header[ConfigStuff.HEADER_CAPTCHA] = captcha;
 
-    String? res = await Requests.patch(ConfigStuff.server, headers: header);
-    if (res == null) {
-      return false;
-    }
-
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, ConfigStuff.USER_ENCRYP_KEY, ConfigStuff.USER_SIGN_KEY);
+    String? res = await Requests.patch(ConfigStuff.server + "/account", headers: header);
+    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res);
     if (data == null || !data.containsKey("stats")) {
       return false;
     }

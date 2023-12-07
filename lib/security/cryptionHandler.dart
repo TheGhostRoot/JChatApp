@@ -20,30 +20,31 @@ class Cryption {
     return algorithm.encrypt(input).base64;
   }
 
-  String? userEncrypt(String? input, String? key) {
-    if (input == null || key == null ||
-        input.isEmpty || key.isEmpty) {
+  String? userEncrypt(String? input) {
+    if (input == null ||
+        input.isEmpty || ConfigStuff.USER_ENCRYP_KEY.isEmpty) {
       return null;
     }
 
-    return Encrypter(AES(Key.fromBase64(key), mode: AESMode.ecb)).encrypt(input).base64;
+    return Encrypter(AES(Key.fromBase64(ConfigStuff.USER_ENCRYP_KEY),
+        mode: AESMode.ecb)).encrypt(input).base64;
   }
 
   String? globalDecrypt(String? cipherText) {
-    if (cipherText == null) {
+    if (cipherText == null || cipherText.isEmpty) {
       return null;
     }
-
 
     return algorithm.decrypt64(cipherText);
   }
 
-  String? userDecrypt(String? cipherText, String? key) {
-    if (cipherText == null || key == null ||
-        cipherText.isEmpty || key.isEmpty) {
+  String? userDecrypt(String? cipherText) {
+    if (cipherText == null ||
+        cipherText.isEmpty || ConfigStuff.USER_ENCRYP_KEY.isEmpty) {
       return null;
     }
 
-    return Encrypter(AES(Key.fromBase64(key), mode: AESMode.ecb)).decrypt64(cipherText);
+    return Encrypter(AES(Key.fromBase64(ConfigStuff.USER_ENCRYP_KEY),
+        mode: AESMode.ecb)).decrypt64(cipherText);
   }
 }

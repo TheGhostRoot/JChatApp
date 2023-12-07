@@ -2,9 +2,9 @@
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/requestHandler.dart';
 
-class ShopManager {
+class PostManager {
 
-  static Future<int?> getItems(int amount) async {
+  static Future<Map<dynamic, dynamic>?> getPosts(int amount) async {
     if (ConfigStuff.user_id == 0) {
       return null;
     }
@@ -26,18 +26,17 @@ class ShopManager {
     header[ConfigStuff.HEADER_AUTH] = authData;
     header[ConfigStuff.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.get(ConfigStuff.server + "/shop", headers: header);
-
+    String? res = await Requests.get(ConfigStuff.server + "/posts", headers: header);
     Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res);
-    if (data == null || !data.containsKey("items")) {
+    if (data == null || !data.containsKey("posts")) {
       return null;
     }
 
-    return data["items"];
+    return data["posts"];
   }
 
 
-  static Future<int?> addItem(Map<dynamic, dynamic> item) async {
+  static Future<int?> createPosts(Map<dynamic, dynamic> data) async {
     if (ConfigStuff.user_id == 0) {
       return null;
     }
@@ -47,7 +46,7 @@ class ShopManager {
       return null;
     }
 
-    String? authData = ConfigStuff.jwt.generateUserJwt(item);
+    String? authData = ConfigStuff.jwt.generateUserJwt(data);
     if (authData == null) {
       return null;
     }
@@ -56,18 +55,16 @@ class ShopManager {
     header[ConfigStuff.HEADER_AUTH] = authData;
     header[ConfigStuff.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.post(ConfigStuff.server + "/shop", headers: header);
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res);
-    if (data == null || !data.containsKey("item_id")) {
+    String? res = await Requests.post(ConfigStuff.server + "/posts", headers: header);
+    Map<dynamic, dynamic>? server_data = ConfigStuff.jwt.getData(res);
+    if (server_data == null) {
       return null;
     }
 
-    return data["item_id"];
+    return server_data["id"];
   }
 
-
-  static Future<bool> updateItem(Map<dynamic, dynamic> changes) async {
-    // changes MUST include `id` for the item
+  static Future<bool> updatePosts(Map<dynamic, dynamic> changes) async {
     if (ConfigStuff.user_id == 0) {
       return false;
     }
@@ -86,16 +83,17 @@ class ShopManager {
     header[ConfigStuff.HEADER_AUTH] = authData;
     header[ConfigStuff.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.patch(ConfigStuff.server + "/shop", headers: header);
+    String? res = await Requests.patch(ConfigStuff.server + "/posts", headers: header);
     Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res);
     if (data == null || !data.containsKey("stats")) {
       return false;
     }
 
+
     return data["stats"];
   }
 
-  static Future<bool> deleteItem(int item_id) async {
+  static Future<bool> deletePosts(int post_id) async {
     if (ConfigStuff.user_id == 0) {
       return false;
     }
@@ -106,7 +104,7 @@ class ShopManager {
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["id"] = item_id;
+    claims["id"] = post_id;
 
     String? authData = ConfigStuff.jwt.generateUserJwt(claims);
     if (authData == null) {
@@ -117,14 +115,13 @@ class ShopManager {
     header[ConfigStuff.HEADER_AUTH] = authData;
     header[ConfigStuff.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.delete(ConfigStuff.server + "/shop", headers: header);
-
+    String? res = await Requests.delete(ConfigStuff.server + "/posts", headers: header);
     Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res);
     if (data == null || !data.containsKey("stats")) {
       return false;
     }
 
+
     return data["stats"];
   }
-
 }

@@ -14,11 +14,9 @@ class JwtHandle {
     //print("Global Sign Key: " + ConfigStuff.globalSignKey);
   }
 
-  Map<dynamic, dynamic>? getData(String jwt, String? encryptionKey, String? signKey) {
-    return encryptionKey == null && signKey == null
-        ? getGlobalClaims(_cryptionHandle.globalDecrypt(jwt))
-        : getUserClaims(
-        _cryptionHandle.userDecrypt(jwt, encryptionKey!), signKey);
+  Map<dynamic, dynamic>? getData(String? jwt, {bool global = false}) {
+    return global ? getGlobalClaims(_cryptionHandle.globalDecrypt(jwt))
+        : getUserClaims(_cryptionHandle.userDecrypt(jwt));
   }
 
   Map<String, Object>? getDataNoEncryption(String? jwt) {
@@ -42,14 +40,14 @@ class JwtHandle {
     return claims;
   }
 
-  Map<dynamic, dynamic>? getUserClaims(String? jwt, String? signKey) {
-    if (jwt == null || signKey == null) {
+  Map<dynamic, dynamic>? getUserClaims(String? jwt) {
+    if (jwt == null || ConfigStuff.USER_SIGN_KEY.isEmpty) {
       return null;
     }
 
     Map<dynamic, dynamic>? claims;
     try {
-      claims = JWT.verify(jwt, SecretKey(signKey)).payload;
+      claims = JWT.verify(jwt, SecretKey(ConfigStuff.USER_SIGN_KEY)).payload;
 
     } catch (e) {
       claims = null;
@@ -65,17 +63,16 @@ class JwtHandle {
 
   }
 
-  String? generateUserJwt(Map<dynamic, dynamic> claims, String? signatureKey,
-      String? encryptionKey) {
-    if (signatureKey == null || signatureKey.isEmpty) {
+  String? generateUserJwt(Map<dynamic, dynamic> claims) {
+    if (ConfigStuff.USER_SIGN_KEY.isEmpty) {
       return null;
     }
 
-    if (encryptionKey != null && encryptionKey.isNotEmpty) {
-      return _cryptionHandle.userEncrypt(JWT(claims).trySign(SecretKey(signatureKey), noIssueAt: true), encryptionKey);
+    if (ConfigStuff.USER_ENCRYP_KEY.isNotEmpty) {
+      return _cryptionHandle.userEncrypt(JWT(claims).trySign(SecretKey(ConfigStuff.USER_SIGN_KEY), noIssueAt: true));
     }
 
-    return JWT(claims).trySign(SecretKey(signatureKey), noIssueAt: true);
+    return JWT(claims).trySign(SecretKey(ConfigStuff.USER_SIGN_KEY), noIssueAt: true);
 
   }
 }
