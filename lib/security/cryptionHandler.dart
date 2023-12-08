@@ -7,7 +7,7 @@ class Cryption {
 
   Cryption() {
     // Key length 128/192/256 can only be bits.
-    _globalEncryptionKey = Key.fromBase64(ConfigStuff.globalEncryptionKey);
+    _globalEncryptionKey = Key.fromBase64(ClientAPI.globalEncryptionKey);
     algorithm = Encrypter(AES(_globalEncryptionKey, mode: AESMode.ecb));
     //print("Global Encryption Key: ${base64Encode(_globalEncryptionKey)}");
   }
@@ -22,11 +22,11 @@ class Cryption {
 
   String? userEncrypt(String? input) {
     if (input == null ||
-        input.isEmpty || ConfigStuff.USER_ENCRYP_KEY.isEmpty) {
+        input.isEmpty || ClientAPI.USER_ENCRYP_KEY.isEmpty) {
       return null;
     }
 
-    return Encrypter(AES(Key.fromBase64(ConfigStuff.USER_ENCRYP_KEY),
+    return Encrypter(AES(Key.fromBase64(ClientAPI.USER_ENCRYP_KEY),
         mode: AESMode.ecb)).encrypt(input).base64;
   }
 
@@ -40,11 +40,11 @@ class Cryption {
 
   String? userDecrypt(String? cipherText) {
     if (cipherText == null ||
-        cipherText.isEmpty || ConfigStuff.USER_ENCRYP_KEY.isEmpty) {
+        cipherText.isEmpty || ClientAPI.USER_ENCRYP_KEY.isEmpty) {
       return null;
     }
 
-    return Encrypter(AES(Key.fromBase64(ConfigStuff.USER_ENCRYP_KEY),
+    return Encrypter(AES(Key.fromBase64(ClientAPI.USER_ENCRYP_KEY),
         mode: AESMode.ecb)).decrypt64(cipherText);
   }
 }

@@ -8,8 +8,8 @@ class JwtHandle {
   late SecretKey _globalSecretKey;
 
   JwtHandle() {
-    _globalSecretKey = SecretKey(ConfigStuff.globalSignKey);
-    _cryptionHandle = new Cryption();
+    _globalSecretKey = SecretKey(ClientAPI.globalSignKey);
+    _cryptionHandle = Cryption();
 
     //print("Global Sign Key: " + ConfigStuff.globalSignKey);
   }
@@ -41,13 +41,13 @@ class JwtHandle {
   }
 
   Map<dynamic, dynamic>? getUserClaims(String? jwt) {
-    if (jwt == null || ConfigStuff.USER_SIGN_KEY.isEmpty) {
+    if (jwt == null || ClientAPI.USER_SIGN_KEY.isEmpty) {
       return null;
     }
 
     Map<dynamic, dynamic>? claims;
     try {
-      claims = JWT.verify(jwt, SecretKey(ConfigStuff.USER_SIGN_KEY)).payload;
+      claims = JWT.verify(jwt, SecretKey(ClientAPI.USER_SIGN_KEY)).payload;
 
     } catch (e) {
       claims = null;
@@ -64,15 +64,15 @@ class JwtHandle {
   }
 
   String? generateUserJwt(Map<dynamic, dynamic> claims) {
-    if (ConfigStuff.USER_SIGN_KEY.isEmpty) {
+    if (ClientAPI.USER_SIGN_KEY.isEmpty) {
       return null;
     }
 
-    if (ConfigStuff.USER_ENCRYP_KEY.isNotEmpty) {
-      return _cryptionHandle.userEncrypt(JWT(claims).trySign(SecretKey(ConfigStuff.USER_SIGN_KEY), noIssueAt: true));
+    if (ClientAPI.USER_ENCRYP_KEY.isNotEmpty) {
+      return _cryptionHandle.userEncrypt(JWT(claims).trySign(SecretKey(ClientAPI.USER_SIGN_KEY), noIssueAt: true));
     }
 
-    return JWT(claims).trySign(SecretKey(ConfigStuff.USER_SIGN_KEY), noIssueAt: true);
+    return JWT(claims).trySign(SecretKey(ClientAPI.USER_SIGN_KEY), noIssueAt: true);
 
   }
 }

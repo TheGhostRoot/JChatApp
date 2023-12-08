@@ -6,11 +6,11 @@ class PostsCommentsManager {
 
 
   static Future<Map<dynamic, dynamic>?> getComments(int amount, int post_id) async {
-    if (ConfigStuff.user_id == 0) {
+    if (ClientAPI.user_id == 0) {
       return null;
     }
 
-    String? sess_header = ConfigStuff.getSessionHeader();
+    String? sess_header = ClientAPI.getSessionHeader();
     if (sess_header == null) {
       return null;
     }
@@ -19,17 +19,17 @@ class PostsCommentsManager {
     claims['amount'] = amount;
     claims['post_id'] = post_id;
 
-    String? authData = ConfigStuff.jwt.generateUserJwt(claims);
+    String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
       return null;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = authData;
-    header[ConfigStuff.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_AUTH] = authData;
+    header[ClientAPI.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.get(ConfigStuff.server + "/posts/comment", headers: header);
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res);
+    String? res = await Requests.get("${ClientAPI.server}/posts/comment", headers: header);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
     if (data == null || !data.containsKey("comments")) {
       return null;
     }
@@ -38,26 +38,26 @@ class PostsCommentsManager {
   }
 
   static Future<int?> createComments(Map<dynamic, dynamic> data) async {
-    if (ConfigStuff.user_id == 0) {
+    if (ClientAPI.user_id == 0) {
       return null;
     }
 
-    String? sess_header = ConfigStuff.getSessionHeader();
+    String? sess_header = ClientAPI.getSessionHeader();
     if (sess_header == null) {
       return null;
     }
 
-    String? authData = ConfigStuff.jwt.generateUserJwt(data);
+    String? authData = ClientAPI.jwt.generateUserJwt(data);
     if (authData == null) {
       return null;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = authData;
-    header[ConfigStuff.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_AUTH] = authData;
+    header[ClientAPI.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.post(ConfigStuff.server + "/posts/comment", headers: header);
-    Map<dynamic, dynamic>? server_data = ConfigStuff.jwt.getData(res);
+    String? res = await Requests.post("${ClientAPI.server}/posts/comment", headers: header);
+    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
     if (server_data == null || !server_data.containsKey("message_id")) {
       return null;
     }
@@ -66,26 +66,26 @@ class PostsCommentsManager {
   }
 
   static Future<bool> updateComments(Map<dynamic, dynamic> data) async {
-    if (ConfigStuff.user_id == 0) {
+    if (ClientAPI.user_id == 0) {
       return false;
     }
 
-    String? sess_header = ConfigStuff.getSessionHeader();
+    String? sess_header = ClientAPI.getSessionHeader();
     if (sess_header == null) {
       return false;
     }
 
-    String? authData = ConfigStuff.jwt.generateUserJwt(data);
+    String? authData = ClientAPI.jwt.generateUserJwt(data);
     if (authData == null) {
       return false;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = authData;
-    header[ConfigStuff.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_AUTH] = authData;
+    header[ClientAPI.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.patch(ConfigStuff.server + "/posts/comment", headers: header);
-    Map<dynamic, dynamic>? server_data = ConfigStuff.jwt.getData(res);
+    String? res = await Requests.patch("${ClientAPI.server}/posts/comment", headers: header);
+    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
     if (server_data == null || !server_data.containsKey("stats")) {
       return false;
     }
@@ -95,11 +95,11 @@ class PostsCommentsManager {
 
 
   static Future<bool> deleteComments(int post_id, int message_id) async {
-    if (ConfigStuff.user_id == 0) {
+    if (ClientAPI.user_id == 0) {
       return false;
     }
 
-    String? sess_header = ConfigStuff.getSessionHeader();
+    String? sess_header = ClientAPI.getSessionHeader();
     if (sess_header == null) {
       return false;
     }
@@ -108,17 +108,17 @@ class PostsCommentsManager {
     claims["message_id"] = message_id;
     claims["post_id"] = post_id;
 
-    String? authData = ConfigStuff.jwt.generateUserJwt(claims);
+    String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
       return false;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = authData;
-    header[ConfigStuff.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_AUTH] = authData;
+    header[ClientAPI.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.patch(ConfigStuff.server + "/posts/comment", headers: header);
-    Map<dynamic, dynamic>? server_data = ConfigStuff.jwt.getData(res);
+    String? res = await Requests.patch("${ClientAPI.server}/posts/comment", headers: header);
+    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
     if (server_data == null || !server_data.containsKey("stats")) {
       return false;
     }

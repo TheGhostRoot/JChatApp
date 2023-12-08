@@ -8,25 +8,25 @@ class CaptchaManager {
     Map<dynamic, dynamic> map = {};
     map["z"] = "a";
 
-    String? jwtToken = ConfigStuff.jwt.generateGlobalJwt(map, true);
+    String? jwtToken = ClientAPI.jwt.generateGlobalJwt(map, true);
     if (jwtToken == null) {
       return null;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = jwtToken;
+    header[ClientAPI.HEADER_AUTH] = jwtToken;
     
-    String? res = await Requests.get(ConfigStuff.server + "/captcha", headers: header);
+    String? res = await Requests.get("${ClientAPI.server}/captcha", headers: header);
     if (res == null) {
       return null;
     }
     
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, global: true);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
     if (data == null || !data.containsKey("captcha_id") || !data.containsKey("captcha_image")) {
       return null;
     }
 
-    ConfigStuff.captcha_id = data["captcha_id"];
+    ClientAPI.captcha_id = data["captcha_id"];
 
     // base 64
     return data["captcha_image"];
@@ -42,22 +42,22 @@ class CaptchaManager {
     Map<dynamic, dynamic> map = {};
     map["answer"] = answer;
 
-    String? jwtToken = ConfigStuff.jwt.generateGlobalJwt(map, true);
+    String? jwtToken = ClientAPI.jwt.generateGlobalJwt(map, true);
     if (jwtToken == null) {
       return false;
     }
 
-    String? captcha_data = ConfigStuff.getCaptchaHeader();
+    String? captcha_data = ClientAPI.getCaptchaHeader();
     if (captcha_data == null) {
       return false;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = jwtToken;
-    header[ConfigStuff.HEADER_CAPTCHA] = captcha_data;
+    header[ClientAPI.HEADER_AUTH] = jwtToken;
+    header[ClientAPI.HEADER_CAPTCHA] = captcha_data;
 
-    String? res = await Requests.post(ConfigStuff.server + "/captcha", headers: header);
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, global: true);
+    String? res = await Requests.post("${ClientAPI.server}/captcha", headers: header);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
     if (data == null || data.containsKey("stats")) {
       return false;
     }

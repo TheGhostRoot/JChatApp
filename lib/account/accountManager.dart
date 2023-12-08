@@ -21,16 +21,15 @@ class AccountManager {
     }
 
     if (password.length > 100) {
-      throw Exception(
-          "Final password is too big! Try removing the extra security or remove some letters from the password.");
+      return false;
     }
 
     if (name.length > 20) {
-      throw Exception("Name must be 20 or less letters.");
+      return false;
     }
 
     if (email.length > 50) {
-      throw Exception("Email must be 50 or less letters.");
+      return false;
     }
 
     // hash the password
@@ -67,7 +66,7 @@ class AccountManager {
     settings["leave"] = true;
     settings["friend_requests"] = true;
 
-    String? settingsJwt = ConfigStuff.jwt.generateGlobalJwt(settings, false);
+    String? settingsJwt = ClientAPI.jwt.generateGlobalJwt(settings, false);
     if (settingsJwt == null) {
       return false;
     }
@@ -78,24 +77,24 @@ class AccountManager {
     claims["password"] = password;
     claims["settings"] = settingsJwt;
 
-    String? authToken = ConfigStuff.jwt.generateGlobalJwt(claims, true);
+    String? authToken = ClientAPI.jwt.generateGlobalJwt(claims, true);
     if (authToken == null) {
       return false;
     }
 
     String? captcha_data =
-        ConfigStuff.cryption.globalEncrypt(ConfigStuff.captcha_id as String);
+    ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id as String);
     if (captcha_data == null) {
       return false;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = authToken;
-    header[ConfigStuff.HEADER_CAPTCHA] = captcha_data;
+    header[ClientAPI.HEADER_AUTH] = authToken;
+    header[ClientAPI.HEADER_CAPTCHA] = captcha_data;
 
-    String? res = await Requests.post(ConfigStuff.server + "/account", headers: header);
+    String? res = await Requests.post("${ClientAPI.server}/account", headers: header);
 
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, global: true);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
     if (data == null) {
       return false;
     }
@@ -104,7 +103,7 @@ class AccountManager {
       return false;
     }
 
-    ConfigStuff.user_id = data["id"];
+    ClientAPI.user_id = data["id"];
 
     return true;
   }
@@ -121,22 +120,22 @@ class AccountManager {
       return false;
     }
 
-    String? jwt = ConfigStuff.jwt.generateGlobalJwt(claims, true);
+    String? jwt = ClientAPI.jwt.generateGlobalJwt(claims, true);
     if (jwt == null) {
       return false;
     }
 
-    String? captchaData = ConfigStuff.cryption.globalEncrypt(ConfigStuff.captcha_id as String);
+    String? captchaData = ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id as String);
     if (captchaData == null) {
       return false;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = jwt;
-    header[ConfigStuff.HEADER_CAPTCHA] = captchaData;
+    header[ClientAPI.HEADER_AUTH] = jwt;
+    header[ClientAPI.HEADER_CAPTCHA] = captchaData;
 
-    String? res = await Requests.get(ConfigStuff.server + "/account", headers: header);
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res, global: true);
+    String? res = await Requests.get("${ClientAPI.server}/account", headers: header);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
     if (data == null) {
       return false;
     }
@@ -146,38 +145,38 @@ class AccountManager {
       return false;
     }
 
-    ConfigStuff.USER_ENCRYP_KEY = data["encry_key"];
-    ConfigStuff.USER_SIGN_KEY = data["sig_key"];
-    ConfigStuff.sess_id = data["sess_id"];
-    ConfigStuff.user_id = data["id"];
+    ClientAPI.USER_ENCRYP_KEY = data["encry_key"];
+    ClientAPI.USER_SIGN_KEY = data["sig_key"];
+    ClientAPI.sess_id = data["sess_id"];
+    ClientAPI.user_id = data["id"];
 
     return true;
   }
 
   static Future<bool> updateAccount(Map<dynamic, dynamic> changes) async {
-    String? auth = ConfigStuff.jwt.generateUserJwt(changes);
+    String? auth = ClientAPI.jwt.generateUserJwt(changes);
     if (auth == null) {
       return false;
     }
 
-    String? captcha = ConfigStuff.cryption.userEncrypt(ConfigStuff.captcha_id as String);
+    String? captcha = ClientAPI.cryption.userEncrypt(ClientAPI.captcha_id as String);
     if (captcha == null) {
       return false;
     }
 
 
-    String? sess_data = ConfigStuff.cryption.userEncrypt(ConfigStuff.sess_id as String);
+    String? sess_data = ClientAPI.cryption.userEncrypt(ClientAPI.sess_id as String);
     if (sess_data == null) {
       return false;
     }
 
     Map<String, String> header = {};
-    header[ConfigStuff.HEADER_AUTH] = auth;
-    header[ConfigStuff.HEADER_SESS] = sess_data;
-    header[ConfigStuff.HEADER_CAPTCHA] = captcha;
+    header[ClientAPI.HEADER_AUTH] = auth;
+    header[ClientAPI.HEADER_SESS] = sess_data;
+    header[ClientAPI.HEADER_CAPTCHA] = captcha;
 
-    String? res = await Requests.patch(ConfigStuff.server + "/account", headers: header);
-    Map<dynamic, dynamic>? data = ConfigStuff.jwt.getData(res);
+    String? res = await Requests.patch("${ClientAPI.server}/account", headers: header);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
     if (data == null || !data.containsKey("stats")) {
       return false;
     }
