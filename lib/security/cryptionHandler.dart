@@ -9,7 +9,6 @@ class Cryption {
     // Key length 128/192/256 can only be bits.
     _globalEncryptionKey = Key.fromBase64(ClientAPI.globalEncryptionKey);
     algorithm = Encrypter(AES(_globalEncryptionKey, mode: AESMode.ecb));
-    //print("Global Encryption Key: ${base64Encode(_globalEncryptionKey)}");
   }
 
   String? globalEncrypt(String? input) {

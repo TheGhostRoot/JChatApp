@@ -7,18 +7,27 @@ import 'package:jchatapp/friends/friend.dart';
 import 'package:jchatapp/security/cryptionHandler.dart';
 import 'package:jchatapp/security/jwtHandler.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:jchatapp/captcha/captchaWidget.dart';
+import 'package:jchatapp/captcha/captchaManager.dart';
 
 // import 'package:yaml/yaml.dart';
 
 class ClientAPI {
+
+
   static String globalEncryptionKey = "P918nfQtYhbUzJVbmSQfZw==";
-  static String globalSignKey =
-      "hGqlbRo8IbgSh24eblzVZWnOk9Iue9cXKegLhnHAGyKV9HkKhmYQPE2QBpxfJmfri9UO7iAj9mZhJhm6E4Fx4Wxv5m/cHaxKASn0duiwBMHYt0ZEa6ViOFr2b62hVBfSQS3xvC0XDqRx+5rAG+vDwvoAUTSsT9Owhd9KJnrWEmJv0rrpY0+4qQbcRKbPhWJrB3ULWjnQuRvJS2Hwr7P/AvIrnFngC9QtNDOvLj/lzG9gHA5MSHws+/a2ZAe2mAI0AAvfYEPwemZy0r9JhHhqi+zcpFTarRqTEP51fXtjwRSoLgcbXxIbh5awM6h05+83NQV8L3cMfpANOyNATO/bBqzg+nU+y69AtVmpjXZpMaqXFAhUqVoVsuHP2Nc6UhPfjkps5Pt6Ho2kjEJotf1cDBXX6RTTxhJ95aL/lHKpNVw/sEBuzwyOqFwp1BMNuzED";
+  static String globalSignKey = "sE1MHHQ/R3LsxNeb3+Lr/xHHQAI83VvXk+YEsTqiNhsfNV7ihj+FcFvQW3pvieZtPKaMQw60vADIPEP0bM16WtycxtWTH0bevIXwWk/Kw+rCnI/mrOGKjSy9wFymceHCMwk03GNSWqBwzOLMrVCXIbFTZ8wNj1nQHHvrEU5Ihx3M=";
 
-  static String server = "http://11111:1111/api/v1";
+  static String server = "http://localhost:25500/api/v1";
 
-  static Cryption cryption = Cryption();
-  static JwtHandle jwt = JwtHandle();
+  static late Cryption cryption;
+  static late JwtHandle jwt;
+
+  static void SetUp() {
+    cryption = Cryption();
+    jwt = JwtHandle();
+  }
+
 
   static String USER_SIGN_KEY = "";
   static String USER_ENCRYP_KEY = "";
@@ -27,17 +36,18 @@ class ClientAPI {
   static String HEADER_CAPTCHA = "CapctchaID";
 
   static int captcha_id = 0;
+  static int captcha_time = 20;
   static int user_id = 0;
   static int sess_id = 0;
 
   static List friends = <Friend>[];
 
   static String? getSessionHeader() {
-    return cryption.userEncrypt(user_id as String);
+    return cryption.userEncrypt(user_id.toString());
   }
 
   static String? getCaptchaHeader() {
-    return cryption.globalEncrypt(captcha_id as String);
+    return cryption.globalEncrypt(captcha_id.toString());
   }
 }
 
@@ -97,6 +107,7 @@ class ClientConfig {
 void main() {
   // "C:\\JChat"
   ClientConfig clientConfig = ClientConfig(null);
+  ClientAPI.SetUp();
   /*
   * By default you would have to integrate your background service on a platform specific way.
 
@@ -134,12 +145,16 @@ Run flutter pub get
   *
   *
   * */
+
+
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: JChat(clientConfig.config),
-        //backgroundColor: const Color.fromRGBO(54, 54, 54, 100),
-      )));
+      home: JChat(clientConfig.config),
+      routes: <String, WidgetBuilder>{
+        "/captcha" : (BuildContext context) => CaptchaScreen(),
+        "/welcome" : (BuildContext context) => JChat(clientConfig.config)
+      }
+  ));
 }
 
 class JChat extends StatefulWidget {
@@ -150,32 +165,36 @@ class JChat extends StatefulWidget {
   }
 
   @override
-  State<JChat> createState() => _WelcomePage(clientConfig);
+  _WelcomePage createState() => _WelcomePage(clientConfig);
 }
 
 class _WelcomePage extends State<JChat> {
-  // Create a text controller and use it to retrieve the current value
-  // of the TextField.
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
   late Map<dynamic, dynamic> clientConfig;
+  String error = "";
 
   _WelcomePage(Map<dynamic, dynamic> clientConfig1) {
     clientConfig = clientConfig1;
   }
 
+
+  Future<void> _goToCaptcha(BuildContext context) async {
+    Navigator.of(context).pushNamed("/captcha");
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return MaterialApp(debugShowCheckedModeBanner: false,
+      home: Scaffold(body: SingleChildScrollView(
       child: Container(
         width: double.infinity,
         height: MediaQuery.of(context).size.height,
@@ -191,7 +210,7 @@ class _WelcomePage extends State<JChat> {
             child: Column(children: [
               const SizedBox(height: 30.0),
               Container(
-                height: 700,
+                height: 720,
                 width: 300,
                 decoration: const BoxDecoration(
                   color: Colors.black,
@@ -214,8 +233,7 @@ class _WelcomePage extends State<JChat> {
                     const SizedBox(height: 10.0),
                     SizedBox(
                       height: 100.0,
-                      child: clientConfig["remember_me"].length > 0
-                          ? ListView.builder(
+                      child: clientConfig["remember_me"].length > 0 ? ListView.builder(
                               itemCount: clientConfig["remember_me"].length,
                               itemBuilder: (BuildContext context, int index) {
                                 return GestureDetector(
@@ -233,9 +251,7 @@ class _WelcomePage extends State<JChat> {
                                       child: CircleAvatar(
                                         radius: 50.0,
                                         backgroundImage: MemoryImage(
-                                          base64Decode(
-                                            clientConfig["remember_me"][index]
-                                                ['pfp'],
+                                          base64Decode(clientConfig["remember_me"][index]['pfp'],
                                           ),
                                         ),
                                       ),
@@ -247,6 +263,7 @@ class _WelcomePage extends State<JChat> {
                           : null,
                     ),
                     const SizedBox(height: 20.0),
+
                     Center(
                       child: SizedBox(
                         width: 200.0,
@@ -291,26 +308,26 @@ class _WelcomePage extends State<JChat> {
                         print("Login with email and password");
                       },
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.cyan,
+                        backgroundColor: Colors.cyan,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20.0),
                         ),
                       ),
                       child: const Padding(
                         padding: EdgeInsets.all(15.0),
-                        child: Text(
-                          'Log In',
+                        child: Text('Log In',
                           style: TextStyle(fontSize: 18.0),
                         ),
                       ),
                     ),
                     const SizedBox(height: 10.0),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        await _goToCaptcha(context);
                         print("Create an account");
                       },
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.cyan,
+                        backgroundColor: Colors.cyan,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20.0),
                         ),
@@ -331,6 +348,9 @@ class _WelcomePage extends State<JChat> {
           ),
         ),
       ),
+    ),
+    ),
     );
   }
 }
+

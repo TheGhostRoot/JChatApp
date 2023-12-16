@@ -10,8 +10,6 @@ class JwtHandle {
   JwtHandle() {
     _globalSecretKey = SecretKey(ClientAPI.globalSignKey);
     _cryptionHandle = Cryption();
-
-    //print("Global Sign Key: " + ConfigStuff.globalSignKey);
   }
 
   Map<dynamic, dynamic>? getData(String? jwt, {bool global = false}) {
@@ -29,10 +27,9 @@ class JwtHandle {
       return null;
     }
 
-
     Map<dynamic, dynamic>? claims;
     try {
-      claims = JWT.verify(jwtToken, _globalSecretKey).payload;
+      claims = JWT.verify(jwtToken, _globalSecretKey, checkHeaderType: false, checkExpiresIn: false, checkNotBefore: false).payload;
 
     } catch (e) {
       claims = null;
@@ -47,7 +44,7 @@ class JwtHandle {
 
     Map<dynamic, dynamic>? claims;
     try {
-      claims = JWT.verify(jwt, SecretKey(ClientAPI.USER_SIGN_KEY)).payload;
+      claims = JWT.verify(jwt, SecretKey(ClientAPI.USER_SIGN_KEY), checkHeaderType: false, checkExpiresIn: false, checkNotBefore: false).payload;
 
     } catch (e) {
       claims = null;
@@ -57,8 +54,7 @@ class JwtHandle {
 
   String? generateGlobalJwt(Map<dynamic, dynamic> claims, bool encrypted) {
 
-     return encrypted ?
-     _cryptionHandle.globalEncrypt(JWT(claims).trySign(_globalSecretKey, noIssueAt: true)) :
+     return encrypted ? _cryptionHandle.globalEncrypt(JWT(claims).trySign(_globalSecretKey, noIssueAt: true, algorithm: JWTAlgorithm.HS512)) :
      JWT(claims).trySign(_globalSecretKey, noIssueAt: true);
 
   }
@@ -69,7 +65,7 @@ class JwtHandle {
     }
 
     if (ClientAPI.USER_ENCRYP_KEY.isNotEmpty) {
-      return _cryptionHandle.userEncrypt(JWT(claims).trySign(SecretKey(ClientAPI.USER_SIGN_KEY), noIssueAt: true));
+      return _cryptionHandle.userEncrypt(JWT(claims).trySign(SecretKey(ClientAPI.USER_SIGN_KEY), noIssueAt: true, algorithm: JWTAlgorithm.HS512));
     }
 
     return JWT(claims).trySign(SecretKey(ClientAPI.USER_SIGN_KEY), noIssueAt: true);

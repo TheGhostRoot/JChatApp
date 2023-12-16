@@ -26,7 +26,7 @@ class CaptchaManager {
       return null;
     }
 
-    ClientAPI.captcha_id = data["captcha_id"];
+    ClientAPI.captcha_id = data["captcha_id"] as int;
 
     // base 64
     return data["captcha_image"];
@@ -58,7 +58,7 @@ class CaptchaManager {
 
     String? res = await Requests.post("${ClientAPI.server}/captcha", headers: header);
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
-    if (data == null || data.containsKey("stats")) {
+    if (data == null || !data.containsKey("stats")) {
       return false;
     }
 
@@ -66,3 +66,4 @@ class CaptchaManager {
   }
 
 }
+
