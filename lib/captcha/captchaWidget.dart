@@ -7,13 +7,21 @@ import 'package:jchatapp/captcha/captchaManager.dart';
 import 'package:jchatapp/main.dart';
 
 class CaptchaScreen extends StatefulWidget {
+  late Map<dynamic, dynamic> data;
+
+  CaptchaScreen(Map<dynamic, dynamic> given_data) {
+    data = given_data;
+  }
+
   @override
-  CaptchaHome createState() => CaptchaHome();
+  CaptchaHome createState() => CaptchaHome(data);
 }
 
 class CaptchaHome extends State<CaptchaScreen> {
   String? captcha_base64;
   String error = "";
+
+  late Map<dynamic, dynamic> data;
 
   Timer? _timer;
   int _start = ClientAPI.captcha_time;
@@ -28,7 +36,6 @@ class CaptchaHome extends State<CaptchaScreen> {
         if (_start == 0) {
           setState(() {
             timer.cancel();
-            Navigator.of(context).pushNamed("/welcome");
           });
         } else {
           setState(() {
@@ -39,7 +46,8 @@ class CaptchaHome extends State<CaptchaScreen> {
     );
   }
 
-  CaptchaHome() {
+  CaptchaHome(Map<dynamic, dynamic> given_data) {
+    data = given_data;
     vis = Visibility(
       visible: captcha_base64 != null,
       child: captcha_base64 != null
@@ -55,6 +63,9 @@ class CaptchaHome extends State<CaptchaScreen> {
     );
     try {
       CaptchaManager.getCaptcha().then((success) {
+        if (success == null) {
+          error = "Can't get captcha";
+        }
         captcha_base64 = success;
 
       }).catchError((e) {
@@ -135,10 +146,12 @@ class CaptchaHome extends State<CaptchaScreen> {
           ElevatedButton(
             onPressed: () async {
               if (_start > 0 && await CaptchaManager.solveCaptcha(captchaController.text)) {
-                Navigator.of(context).pushNamed("/home");
+                data["captcha_stats"] = true;
+                Navigator.pushNamed(context, data["on_success_path"], arguments: data);
 
               } else {
-                Navigator.of(context).pushNamed("/welcome");
+                data["captcha_stats"] = false;
+                Navigator.pushNamed(context, data["on_fail_path"], arguments: data);
               }
             },
             style: ElevatedButton.styleFrom(

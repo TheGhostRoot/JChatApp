@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:jchatapp/account/accountRegisterWidget.dart';
 import 'package:jchatapp/friends/friend.dart';
 import 'package:jchatapp/security/cryptionHandler.dart';
 import 'package:jchatapp/security/jwtHandler.dart';
@@ -13,10 +14,9 @@ import 'package:jchatapp/captcha/captchaManager.dart';
 // import 'package:yaml/yaml.dart';
 
 class ClientAPI {
-
-
   static String globalEncryptionKey = "P918nfQtYhbUzJVbmSQfZw==";
-  static String globalSignKey = "sE1MHHQ/R3LsxNeb3+Lr/xHHQAI83VvXk+YEsTqiNhsfNV7ihj+FcFvQW3pvieZtPKaMQw60vADIPEP0bM16WtycxtWTH0bevIXwWk/Kw+rCnI/mrOGKjSy9wFymceHCMwk03GNSWqBwzOLMrVCXIbFTZ8wNj1nQHHvrEU5Ihx3M=";
+  static String globalSignKey =
+      "sE1MHHQ/R3LsxNeb3+Lr/xHHQAI83VvXk+YEsTqiNhsfNV7ihj+FcFvQW3pvieZtPKaMQw60vADIPEP0bM16WtycxtWTH0bevIXwWk/Kw+rCnI/mrOGKjSy9wFymceHCMwk03GNSWqBwzOLMrVCXIbFTZ8wNj1nQHHvrEU5Ihx3M=";
 
   static String server = "http://localhost:25500/api/v1";
 
@@ -27,7 +27,6 @@ class ClientAPI {
     cryption = Cryption();
     jwt = JwtHandle();
   }
-
 
   static String USER_SIGN_KEY = "";
   static String USER_ENCRYP_KEY = "";
@@ -98,7 +97,6 @@ class ClientConfig {
           ? ClientAPI.jwt.getData(lines[0], global: true) ?? getDefaultConfig()
           : getDefaultConfig();
     } catch (e) {
-      print(e.toString());
       config = getDefaultConfig();
     }
   }
@@ -106,8 +104,8 @@ class ClientConfig {
 
 void main() {
   // "C:\\JChat"
-  ClientConfig clientConfig = ClientConfig(null);
   ClientAPI.SetUp();
+  ClientConfig clientConfig = ClientConfig("C:\\JChat");
   /*
   * By default you would have to integrate your background service on a platform specific way.
 
@@ -146,31 +144,37 @@ Run flutter pub get
   *
   * */
 
+  Map<dynamic, dynamic> map = {};
+  map["client_config"] = clientConfig;
 
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: JChat(clientConfig.config),
+      home: JChat(map),
       routes: <String, WidgetBuilder>{
-        "/captcha" : (BuildContext context) => CaptchaScreen(),
-        "/welcome" : (BuildContext context) => JChat(clientConfig.config)
-      }
-  ));
+        "/captcha": (BuildContext context) => CaptchaScreen(map),
+
+        "/welcome": (BuildContext context) => JChat(map),
+
+        "/register": (BuildContext context) => AccountRegisterScreen(map)
+      }));
 }
 
 class JChat extends StatefulWidget {
-  late Map<dynamic, dynamic> clientConfig;
+  late Map<dynamic, dynamic> data;
 
-  JChat(Map<dynamic, dynamic> clientConfig1) {
-    clientConfig = clientConfig1;
+  JChat(Map<dynamic, dynamic> given_data) {
+    data = given_data;
   }
 
   @override
-  _WelcomePage createState() => _WelcomePage(clientConfig);
+  _WelcomePage createState() => _WelcomePage(data);
 }
 
 class _WelcomePage extends State<JChat> {
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
+
+  bool isRememberMe = false;
 
   @override
   void dispose() {
@@ -179,178 +183,203 @@ class _WelcomePage extends State<JChat> {
     super.dispose();
   }
 
-  late Map<dynamic, dynamic> clientConfig;
+  late ClientConfig clientConfig;
+  late Map<dynamic, dynamic> data;
   String error = "";
 
-  _WelcomePage(Map<dynamic, dynamic> clientConfig1) {
-    clientConfig = clientConfig1;
+  _WelcomePage(Map<dynamic, dynamic> given_data) {
+    data = given_data;
+    clientConfig = data["client_config"] as ClientConfig;
   }
 
-
-  Future<void> _goToCaptcha(BuildContext context) async {
-    Navigator.of(context).pushNamed("/captcha");
+  Color getColor(Set<MaterialState> states) {
+    const Set<MaterialState> interactiveStates = <MaterialState>{
+      MaterialState.pressed,
+      MaterialState.hovered,
+      MaterialState.focused,
+    };
+    if (states.any(interactiveStates.contains) || isRememberMe) {
+      return Colors.blue;
+    }
+    return Colors.white;
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false,
-      home: Scaffold(body: SingleChildScrollView(
-      child: Container(
-        width: double.infinity,
-        height: MediaQuery.of(context).size.height,
-        //color: Colors.transparent, // Set a transparent background color
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("images/welcome_background.png"),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Center(
-            child: Column(children: [
-              const SizedBox(height: 30.0),
-              Container(
-                height: 720,
-                width: 300,
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(20.0),
-                    top: Radius.circular(20.0),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 100.0),
-                      child: Image.asset(
-                        'images/Logo.png',
-                        width: 150.0,
-                        height: 150.0,
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: Container(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("images/welcome_background2.png"),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Center(
+                child: Column(children: [
+                  const SizedBox(height: 30.0),
+                  Container(
+                    height: 810,
+                    width: 300,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(20.0),
+                        top: Radius.circular(20.0),
                       ),
                     ),
-                    const SizedBox(height: 10.0),
-                    SizedBox(
-                      height: 100.0,
-                      child: clientConfig["remember_me"].length > 0 ? ListView.builder(
-                              itemCount: clientConfig["remember_me"].length,
-                              itemBuilder: (BuildContext context, int index) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    print("Remember me");
-                                  },
-                                  child: Container(
-                                    width: 100.0,
-                                    height: 100.0,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.cyan,
-                                    ),
-                                    child: Center(
-                                      child: CircleAvatar(
-                                        radius: 50.0,
-                                        backgroundImage: MemoryImage(
-                                          base64Decode(clientConfig["remember_me"][index]['pfp'],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 100.0),
+                          child: Image.asset('images/Logo.png',
+                            width: 150.0,
+                            height: 150.0,
+                          ),
+                        ),
+                        const SizedBox(height: 10.0),
+                        SizedBox(
+                          height: 100.0,
+                          child: clientConfig.config["remember_me"].length > 0
+                              ? ListView.builder(
+                                  itemCount: clientConfig.config["remember_me"].length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        print("Remember me");
+                                      },
+                                      child: Container(
+                                        width: 100.0,
+                                        height: 100.0,
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.cyan,
+                                        ),
+                                        child: Center(
+                                          child: CircleAvatar(
+                                            radius: 50.0,
+                                            backgroundImage: MemoryImage(base64Decode(clientConfig.config["remember_me"][index]['pfp']),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                );
+                                    );
+                                  },
+                                )
+                              : null,
+                        ),
+                        const SizedBox(height: 20.0),
+                        const Text("Email                                        ", style: TextStyle(color: Colors.white)),
+                        const SizedBox(height: 10.0),
+                        SizedBox(
+                            width: 200.0,
+                            child: TextField(
+                              controller: emailController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Email',
+                                  hintStyle: TextStyle(color: Colors.white)),
+                            ),
+                          ),
+
+                        const SizedBox(height: 20.0),
+                        const Text("Password                                 ", style: TextStyle(color: Colors.white)),
+                        const SizedBox(height: 10.0),
+                        SizedBox(width: 200.0,
+                            child: TextField(
+                              style: const TextStyle(color: Colors.white),
+                              controller: passwordController,
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Password',
+                                  hintStyle: TextStyle(color: Colors.white)),
+                            ),
+                          ),
+
+                        const SizedBox(height: 10.0),
+
+                        Wrap(
+                          children: <Widget>[
+                            const Text("Remember Me?", style: TextStyle(color: Colors.white, fontSize: 15)),
+                            Checkbox(
+                              checkColor: Colors.white,
+                              fillColor:
+                              MaterialStateProperty.resolveWith(getColor),
+                              value: isRememberMe,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isRememberMe = value!;
+                                });
                               },
                             )
-                          : null,
-                    ),
-                    const SizedBox(height: 20.0),
-
-                    Center(
-                      child: SizedBox(
-                        width: 200.0,
-                        child: TextField(
-                          controller: emailController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: 'Email',
-                              hintStyle: TextStyle(color: Colors.white)
+                          ],
+                        ),
+                        const SizedBox(height: 20.0),
+                        Center(
+                          child: InkWell(
+                            child: const Text('Forgot password?',
+                                style: TextStyle(color: Colors.blue)),
+                            onTap: () async => await launchUrl(
+                              Uri.parse(
+                                  'https://docs.flutter.io/flutter/services/UrlLauncher-class.html'),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20.0),
-                    Center(
-                      child: SizedBox(
-                        width: 200.0,
-                        child: TextField(
-                          style: const TextStyle(color: Colors.white),
-                          controller: passwordController,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: 'Password',
-                            hintStyle: TextStyle(color: Colors.white)
+                        const SizedBox(height: 20.0),
+                        ElevatedButton(
+                          onPressed: () {
+                            print("Login with email and password");
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.cyan,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                            ),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(15.0),
+                            child: Text(
+                              'Log In',
+                              style: TextStyle(fontSize: 18.0),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 10.0),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, "/register", arguments: data);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.cyan,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                            ),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(15.0),
+                            child: Text('Register',
+                              style: TextStyle(fontSize: 18.0),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Center(
-                      child: InkWell(
-                        child: const Text('Forgot password?', style: TextStyle(color: Colors.blue)),
-                        onTap: () async => await launchUrl(
-                          Uri.parse(
-                              'https://docs.flutter.io/flutter/services/UrlLauncher-class.html'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20.0),
-                    ElevatedButton(
-                      onPressed: () {
-                        print("Login with email and password");
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.cyan,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                      ),
-                      child: const Padding(
-                        padding: EdgeInsets.all(15.0),
-                        child: Text('Log In',
-                          style: TextStyle(fontSize: 18.0),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await _goToCaptcha(context);
-                        print("Create an account");
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.cyan,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                      ),
-                      child: const Padding(
-                        padding: EdgeInsets.all(15.0),
-                        child: Text(
-                          'Create an account',
-                          style: TextStyle(fontSize: 18.0),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 30.0),
+                ]),
               ),
-              const SizedBox(height: 30.0),
-            ]),
+            ),
           ),
         ),
       ),
-    ),
-    ),
     );
   }
 }
-

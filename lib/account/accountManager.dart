@@ -4,18 +4,13 @@ import 'package:jchatapp/main.dart';
 import 'package:crypt/crypt.dart';
 
 class AccountManager {
-  static String _handlePassword(
-      String password, Map<dynamic, dynamic>? moreSecurity) {
+  static String _handlePassword(String password) {
     return Crypt.sha256(password,
             rounds: 100,
-            salt: moreSecurity != null
-                ? "${moreSecurity}JGVUhiq2qe13r14qfq4h794w"
-                : null)
-        .hash;
+            salt: "JGVUhiq2qe13r14qfq4h794w").hash;
   }
 
-  static Future<bool> createAccount(String? name, String? email,
-      String? password, Map<dynamic, dynamic>? moreSecurity) async {
+  static Future<bool> createAccount(String? name, String? email, String? password) async {
     if (name == null || email == null || password == null) {
       return false;
     }
@@ -33,7 +28,7 @@ class AccountManager {
     }
 
     // hash the password
-    password = _handlePassword(password, moreSecurity);
+    password = _handlePassword(password);
 
     /* user settings settings |  for notifications
      change_email
@@ -83,7 +78,7 @@ class AccountManager {
     }
 
     String? captcha_data =
-    ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id as String);
+    ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id.toString());
     if (captcha_data == null) {
       return false;
     }
@@ -108,12 +103,11 @@ class AccountManager {
     return true;
   }
 
-  static Future<bool> getAccount(String? email, String? password,
-      Map<dynamic, dynamic>? moreSecurity, int? id) async {
+  static Future<bool> getAccount(String? email, String? password, int? id) async {
     Map<dynamic, dynamic> claims = {};
     if (email != null && password != null) {
       claims["email"] = email;
-      claims["password"] = _handlePassword(password, moreSecurity);
+      claims["password"] = _handlePassword(password);
     } else if (id != null) {
       claims["id"] = id;
     } else {
@@ -125,7 +119,7 @@ class AccountManager {
       return false;
     }
 
-    String? captchaData = ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id as String);
+    String? captchaData = ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id.toString());
     if (captchaData == null) {
       return false;
     }
@@ -159,13 +153,13 @@ class AccountManager {
       return false;
     }
 
-    String? captcha = ClientAPI.cryption.userEncrypt(ClientAPI.captcha_id as String);
+    String? captcha = ClientAPI.cryption.userEncrypt(ClientAPI.captcha_id.toString());
     if (captcha == null) {
       return false;
     }
 
 
-    String? sess_data = ClientAPI.cryption.userEncrypt(ClientAPI.sess_id as String);
+    String? sess_data = ClientAPI.cryption.userEncrypt(ClientAPI.sess_id.toString());
     if (sess_data == null) {
       return false;
     }
