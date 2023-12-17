@@ -31,6 +31,9 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
   String specialLetters = "🔴";
 
   String error = "";
+  String suss = "";
+
+  bool _passwordVisible = false;
 
   AccountRegisterHome(Map<dynamic, dynamic> given_data) {
     data = given_data;
@@ -38,22 +41,27 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
         data.containsKey("email") && data.containsKey("password") && data["captcha_stats"]) {
       Future.delayed(const Duration(seconds: 1), () async {
           if (!await AccountManager.createAccount(data["name"], data["email"], data["password"])) {
-            error = "Can't create this account";
+            setState(() {
+              error = "Can't create this account";
+            });
 
           } else {
-            data.remove("captcha_stats");
-            data.remove("email");
-            data.remove("password");
-            data.remove("name");
-            data.remove("on_success_path");
-            data.remove("on_fail_path");
+            setState(() {
+              suss = "Account created";
+            });
           }
+          data.remove("captcha_stats");
+          data.remove("email");
+          data.remove("password");
+          data.remove("name");
+          data.remove("on_success_path");
+          data.remove("on_fail_path");
       });
     }
   }
 
   void registerUser()  {
-    data["on_success_path"] = "/welcome";
+    data["on_success_path"] = "/register";
     data["on_fail_path"] = "/register";
     data["name"] = nameController.text;
     data["password"] = passwordController.text;
@@ -106,37 +114,44 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                             fontSize: 50)),
                     const SizedBox(height: 20.0),
                     Text(error, style: const TextStyle(color: Colors.red)),
+                        Text(suss, style: const TextStyle(color: Colors.green)),
                     const SizedBox(height: 30.0),
-                    const Text("Name                                        ", style: TextStyle(color: Colors.white)),
-                    const SizedBox(height: 10.0),
+                    //const Text("Name                                        ", style: TextStyle(color: Colors.white)),
+                    //const SizedBox(height: 10.0),
                     SizedBox(
                       width: 200.0,
                       child: TextField(
-                        controller: nameController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: 'Name',
-                            hintStyle: TextStyle(color: Colors.white)),
-                      ),
+                          controller: nameController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0)
+                              ),
+                              hintText: 'Name',
+                              labelText: "Name",
+                              hintStyle: const TextStyle(color: Colors.blueGrey)),
+                        )
                     ),
                     const SizedBox(height: 20.0),
-                        const Text("Email                                        ", style: TextStyle(color: Colors.white)),
-                        const SizedBox(height: 10.0),
+                      //  const Text("Email                                        ", style: TextStyle(color: Colors.white)),
+                    //    const SizedBox(height: 10.0),
                     SizedBox(
                       width: 200.0,
                       child: TextField(
                         controller: emailController,
                         style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0)
+                            ),
+                            labelText: "Email",
                             hintText: 'Email',
-                            hintStyle: TextStyle(color: Colors.white)),
+                            hintStyle: const TextStyle(color: Colors.blueGrey)),
                       ),
                     ),
                     const SizedBox(height: 20.0),
-                        const Text("Password                                 ", style: TextStyle(color: Colors.white)),
-                        const SizedBox(height: 10.0),
+                    //    const Text("Password                                 ", style: TextStyle(color: Colors.white)),
+                    //    const SizedBox(height: 10.0),
                     SizedBox(
                       width: 200.0,
                       child: TextField(
@@ -192,10 +207,27 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                         },
                         controller: passwordController,
                         style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
+                        obscureText: !_passwordVisible,
+                        decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _passwordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _passwordVisible = !_passwordVisible;
+                                });
+                              },
+                            ),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0)
+                            ),
                             hintText: 'Password',
-                            hintStyle: TextStyle(color: Colors.white)),
+                            labelText: "Password",
+                            hintStyle: const TextStyle(color: Colors.blueGrey)),
                       ),
                     ),
                     const SizedBox(height: 10.0),

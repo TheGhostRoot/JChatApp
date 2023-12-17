@@ -73,7 +73,7 @@ class CaptchaHome extends State<CaptchaScreen> {
 
       }).whenComplete(() {});
 
-      Future.delayed(const Duration(seconds: 1), () async {
+      Future.delayed(const Duration(seconds: 2), () async {
         setState(() {
           vis = Visibility(
             visible: captcha_base64 != null,
