@@ -46,6 +46,7 @@ class AccountManager {
     */
 
     Map<dynamic, dynamic> settings = {};
+    settings["pfp"] = "";
     settings["change_password"] = true;
     settings["start_sub"] = true;
     settings["end_sub"] = true;
@@ -77,8 +78,7 @@ class AccountManager {
       return false;
     }
 
-    String? captcha_data =
-    ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id.toString());
+    String? captcha_data = ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id.toString());
     if (captcha_data == null) {
       return false;
     }
@@ -108,8 +108,10 @@ class AccountManager {
     if (email != null && password != null) {
       claims["email"] = email;
       claims["password"] = _handlePassword(password);
+
     } else if (id != null) {
       claims["id"] = id;
+
     } else {
       return false;
     }
@@ -139,10 +141,33 @@ class AccountManager {
       return false;
     }
 
-    ClientAPI.USER_ENCRYP_KEY = data["encry_key"];
-    ClientAPI.USER_SIGN_KEY = data["sig_key"];
-    ClientAPI.sess_id = data["sess_id"];
-    ClientAPI.user_id = data["id"];
+    ClientAPI.USER_ENCRYP_KEY = data["encry_key"] as String;
+    ClientAPI.USER_SIGN_KEY = data["sig_key"] as String;
+    ClientAPI.sess_id = data["sess_id"] as int;
+    ClientAPI.user_id = data["id"] as int;
+
+
+    Map<dynamic, dynamic> claims2 = {};
+    claims2["id"] = ClientAPI.user_id;
+
+    String? jwt2 = ClientAPI.jwt.generateGlobalJwt(claims2, true);
+    if (jwt2 == null) {
+      return false;
+    }
+
+    Map<String, String> header2 = {};
+    header2[ClientAPI.HEADER_AUTH] = jwt2;
+
+    String? res2 = await Requests.delete("${ClientAPI.server}/account", headers: header2);
+    if (res2 == null) {
+      return false;
+    }
+
+    if (res2.isEmpty) {
+      return false;
+    }
+
+    ClientAPI.user_pfp = res2;
 
     return true;
   }
