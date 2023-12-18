@@ -47,6 +47,10 @@ class AccountManager {
 
     Map<dynamic, dynamic> settings = {};
     settings["pfp"] = "";
+    settings["banner"] = "".codeUnits;
+    settings["bio"] = "";
+    settings["stats"] = "offline";
+
     settings["change_password"] = true;
     settings["start_sub"] = true;
     settings["end_sub"] = true;
@@ -145,6 +149,9 @@ class AccountManager {
     ClientAPI.USER_SIGN_KEY = data["sig_key"] as String;
     ClientAPI.sess_id = data["sess_id"] as int;
     ClientAPI.user_id = data["id"] as int;
+    ClientAPI.user_banner = data["banner"] as String;
+    ClientAPI.user_bio = data["bio"] as String;
+    ClientAPI.user_stats = data["stats"] as String;
 
 
     Map<dynamic, dynamic> claims2 = {};

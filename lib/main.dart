@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:jchatapp/account/accountManager.dart';
 import 'package:jchatapp/account/accountRegisterWidget.dart';
 import 'package:jchatapp/friends/friend.dart';
+import 'package:jchatapp/navigationWidget.dart';
 import 'package:jchatapp/security/cryptionHandler.dart';
 import 'package:jchatapp/security/jwtHandler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jchatapp/captcha/captchaWidget.dart';
-import 'package:jchatapp/captcha/captchaManager.dart';
 
 // import 'package:yaml/yaml.dart';
 
@@ -19,7 +19,7 @@ class ClientAPI {
   static String globalSignKey =
       "sE1MHHQ/R3LsxNeb3+Lr/xHHQAI83VvXk+YEsTqiNhsfNV7ihj+FcFvQW3pvieZtPKaMQw60vADIPEP0bM16WtycxtWTH0bevIXwWk/Kw+rCnI/mrOGKjSy9wFymceHCMwk03GNSWqBwzOLMrVCXIbFTZ8wNj1nQHHvrEU5Ihx3M=";
 
-  static String server = "http://localhost:25500/api/v1";
+  static String server = "http://192.168.0.215:25500/api/v1";
 
   static late Cryption cryption;
   static late JwtHandle jwt;
@@ -39,6 +39,10 @@ class ClientAPI {
   static int captcha_time = 20;
   static int user_id = 0;
   static String user_pfp = "";
+  static String user_banner = "";
+  static String user_name = "";
+  static String user_bio = "";
+  static String user_stats = "";
   static int sess_id = 0;
 
   static List friends = <Friend>[];
@@ -115,10 +119,11 @@ class ClientConfig {
   }
 }
 
+
 void main() {
   // "C:\\JChat"
   ClientAPI.SetUp();
-  ClientConfig clientConfig = ClientConfig("C:\\JChat");
+  ClientConfig clientConfig = ClientConfig(null);
   /*
   * By default you would have to integrate your background service on a platform specific way.
 
@@ -170,7 +175,9 @@ Run flutter pub get
 
         "/welcome": (BuildContext context) => JChat(map),
 
-        "/register": (BuildContext context) => AccountRegisterScreen(map)
+        "/register": (BuildContext context) => AccountRegisterScreen(map),
+
+        "/home": (BuildContext context) => NavigationScreen(map)
       }));
 }
 
@@ -202,6 +209,8 @@ class _WelcomePage extends State<JChat> {
   late Map<dynamic, dynamic> data;
   String error = "";
   bool _passwordVisible = false;
+// android:usesCleartextTraffic="true"  -> AndroidMainfest.xml
+  // <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
   _WelcomePage(Map<dynamic, dynamic> given_data) {
     data = given_data;
@@ -220,8 +229,6 @@ class _WelcomePage extends State<JChat> {
             data.remove("on_fail_path");
 
           } else {
-            print("Login it with email and password");
-
             if (!isRememberMe) {
               ClientConfig clientConfig = (data["client_config"] as ClientConfig);
               clientConfig.config["remember_me"]["id"] = ClientAPI.user_id;
@@ -234,7 +241,7 @@ class _WelcomePage extends State<JChat> {
             data.remove("password");
             data.remove("on_success_path");
             data.remove("on_fail_path");
-            // TODO navigate to Home page
+            Navigator.pushNamed(context, "/home", arguments: data);
           }
 
         } else if (data.containsKey("remember_me_id")) {
@@ -249,17 +256,17 @@ class _WelcomePage extends State<JChat> {
             data.remove("on_fail_path");
 
           } else {
-            print("Login it with remember me");
             data.remove("captcha_stats");
             data.remove("remember_me_id");
             data.remove("on_success_path");
             data.remove("on_fail_path");
-            // TODO navigate to Home page
+            Navigator.pushNamed(context, "/home", arguments: data);
           }
         }
       });
     }
   }
+
 
   Color getColor(Set<MaterialState> states) {
     const Set<MaterialState> interactiveStates = <MaterialState>{

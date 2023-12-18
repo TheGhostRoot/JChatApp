@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -81,7 +82,7 @@ class CaptchaHome extends State<CaptchaScreen> {
                 ? DecoratedBox(
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        fit: BoxFit.cover,
+                        fit: BoxFit.fill,
                         image: MemoryImage(base64Decode(captcha_base64!)),
                       ),
                     ),
@@ -122,7 +123,7 @@ class CaptchaHome extends State<CaptchaScreen> {
           Text(error, style: const TextStyle(color: Colors.red)),
           const SizedBox(height: 50.0),
           SizedBox(
-            width: 1000,
+            width: Platform.isAndroid || Platform.isIOS ? 350 : 1000,
             height: 200,
             child: vis,
           ),
