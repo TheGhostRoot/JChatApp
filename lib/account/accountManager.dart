@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:jchatapp/requestHandler.dart';
 import 'package:jchatapp/main.dart';
 import 'package:crypt/crypt.dart';
@@ -140,41 +141,10 @@ class AccountManager {
       return false;
     }
 
-    if (!data.containsKey("encry_key") || !data.containsKey("sig_key") ||
-        !data.containsKey("sess_id") || !data.containsKey("id")) {
-      return false;
-    }
-
     ClientAPI.USER_ENCRYP_KEY = data["encry_key"] as String;
     ClientAPI.USER_SIGN_KEY = data["sig_key"] as String;
     ClientAPI.sess_id = data["sess_id"] as int;
     ClientAPI.user_id = data["id"] as int;
-    ClientAPI.user_banner = data["banner"] as String;
-    ClientAPI.user_bio = data["bio"] as String;
-    ClientAPI.user_stats = data["stats"] as String;
-
-
-    Map<dynamic, dynamic> claims2 = {};
-    claims2["id"] = ClientAPI.user_id;
-
-    String? jwt2 = ClientAPI.jwt.generateGlobalJwt(claims2, true);
-    if (jwt2 == null) {
-      return false;
-    }
-
-    Map<String, String> header2 = {};
-    header2[ClientAPI.HEADER_AUTH] = jwt2;
-
-    String? res2 = await Requests.delete("${ClientAPI.server}/account", headers: header2);
-    if (res2 == null) {
-      return false;
-    }
-
-    if (res2.isEmpty) {
-      return false;
-    }
-
-    ClientAPI.user_pfp = res2;
 
     return true;
   }

@@ -1,3 +1,5 @@
+
+import 'package:flutter/src/widgets/image.dart';
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/requestHandler.dart';
 
@@ -26,6 +28,26 @@ class ProfileManager {
     header[ClientAPI.HEADER_SESS] = sess_header;
 
     String? res = await Requests.get("${ClientAPI.server}/profile", headers: header);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+    if (data == null) {
+      return null;
+    }
+
+    ClientAPI.user_bio = data["bio"] as String;
+    ClientAPI.user_stats = data["stats"] as String;
+
+    if ((data["pfp"] as String).isNotEmpty) {
+      // pfp will be empty if there is no profile pic
+      // pfp won't be empty if user sets a picture
+      ClientAPI.user_pfp = data["pfp"] as Image;
+    }
+
+    if ((data["banner"] as String).isNotEmpty) {
+      // banner will be empty if there is no profile pic
+      // banner won't be empty if user sets a picture
+      ClientAPI.user_banner = data["banner"] as Image;
+    }
+
     return ClientAPI.jwt.getData(res);
   }
 

@@ -1,5 +1,4 @@
 //import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -38,8 +37,8 @@ class ClientAPI {
   static int captcha_id = 0;
   static int captcha_time = 20;
   static int user_id = 0;
-  static String user_pfp = "";
-  static String user_banner = "";
+  static Image user_pfp =  const Image(image: AssetImage("images/pfp.png"));
+  static Image user_banner = const Image(image: AssetImage("images/black.png"));
   static String user_name = "";
   static String user_bio = "";
   static String user_stats = "";
@@ -63,7 +62,7 @@ class ClientConfig {
   Map<dynamic, dynamic> getDefaultConfig() {
     Map<dynamic, dynamic> conf = {};
     conf["remember_me"] = {};
-    conf["remember_me"]["pfp"] = "";
+    conf["remember_me"]["pfp"] = null;
     conf["remember_me"]["id"] = 0;
 
     return conf;
@@ -337,7 +336,7 @@ class _WelcomePage extends State<JChat> {
                         const SizedBox(height: 10.0),
                         SizedBox(
                           height: 100.0,
-                          child: clientConfig.config["remember_me"]["pfp"].toString().isNotEmpty ? GestureDetector(
+                          child: clientConfig.config["remember_me"]["pfp"] != null ? GestureDetector(
                                       onTap: () {
                                         loginWithRememberMe();
                                       },
@@ -351,8 +350,7 @@ class _WelcomePage extends State<JChat> {
                                         child: Center(
                                           child: CircleAvatar(
                                             radius: 50.0,
-                                            backgroundImage: MemoryImage(base64Decode(clientConfig.config["remember_me"]['pfp']),
-                                            ),
+                                            backgroundImage: (clientConfig.config["remember_me"]["pfp"] as Image).image,
                                           ),
                                         ),
                                       ),
@@ -436,10 +434,9 @@ class _WelcomePage extends State<JChat> {
                         Center(
                           child: InkWell(
                             child: const Text('Forgot password?',
-                                style: TextStyle(color: Colors.blue)),
+                            style: TextStyle(color: Colors.blue)),
                             onTap: () async => await launchUrl(
-                              Uri.parse(
-                                  'https://docs.flutter.io/flutter/services/UrlLauncher-class.html'),
+                              Uri.parse('https://docs.flutter.io/flutter/services/UrlLauncher-class.html'),
                             ),
                           ),
                         ),

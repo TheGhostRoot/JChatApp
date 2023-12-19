@@ -70,6 +70,8 @@ flutter:
      - "images/Logo.png"
      - "images/welcome_background.png"
      - "images/welcome_background2.png"
+     - "images/pfp.png"
+     - "images/black.png"
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
