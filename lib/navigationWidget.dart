@@ -15,7 +15,7 @@ class NavigationScreen extends StatefulWidget {
 
 class NavigationHome extends State<NavigationScreen> {
   late Map<dynamic, dynamic> data;
-  int currentPageIndex = 4;
+  int currentPageIndex = 2;
 
 
   NavigationHome(Map<dynamic, dynamic> given_data) {
@@ -61,7 +61,6 @@ class NavigationHome extends State<NavigationScreen> {
         NavigationDestination(icon: Icon(Icons.people_alt, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Groups'),
         NavigationDestination(icon: Icon(Icons.people_outline, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Friends'),
         NavigationDestination(icon: Icon(Icons.newspaper, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Posts'),
-        NavigationDestination(icon: Icon(Icons.shopping_bag_sharp, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Shop'),
         NavigationDestination(icon: Icon(Icons.person_sharp, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Profile'),
       ],
         selectedIndex: currentPageIndex,
@@ -75,7 +74,7 @@ class NavigationHome extends State<NavigationScreen> {
         indicatorColor: const Color.fromRGBO(237, 237, 237, 1),
         indicatorShape: const CircleBorder()
       ),
-        body: [Text("Groups"), Text("Friends"), Text("Posts"), Text("Shop"), ProfileScreen(data)][currentPageIndex]
+        body: [Text("Groups"), Text("Friends"), Text("Posts"), ProfileScreen(data)][currentPageIndex]
     ));
   }
 }

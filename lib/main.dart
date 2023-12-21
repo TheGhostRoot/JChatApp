@@ -6,6 +6,7 @@ import 'package:jchatapp/account/accountManager.dart';
 import 'package:jchatapp/account/accountRegisterWidget.dart';
 import 'package:jchatapp/friends/friend.dart';
 import 'package:jchatapp/navigationWidget.dart';
+import 'package:jchatapp/profile/profileManager.dart';
 import 'package:jchatapp/security/cryptionHandler.dart';
 import 'package:jchatapp/security/jwtHandler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -40,14 +41,14 @@ class ClientAPI {
   static Image user_pfp =  const Image(image: AssetImage("images/pfp.png"));
   static Image user_banner = const Image(image: AssetImage("images/black.png"));
   static String user_name = "";
-  static String user_bio = "";
+  static String user_about_me = "";
   static String user_stats = "";
   static int sess_id = 0;
 
   static List friends = <Friend>[];
 
   static String? getSessionHeader() {
-    return cryption.userEncrypt(user_id.toString());
+    return cryption.globalEncrypt(sess_id.toString());
   }
 
   static String? getCaptchaHeader() {
@@ -240,6 +241,8 @@ class _WelcomePage extends State<JChat> {
             data.remove("password");
             data.remove("on_success_path");
             data.remove("on_fail_path");
+
+            await ProfileManager.getProfile(ClientAPI.user_id);
             Navigator.pushNamed(context, "/home", arguments: data);
           }
 
@@ -259,6 +262,8 @@ class _WelcomePage extends State<JChat> {
             data.remove("remember_me_id");
             data.remove("on_success_path");
             data.remove("on_fail_path");
+
+            await ProfileManager.getProfile(ClientAPI.user_id);
             Navigator.pushNamed(context, "/home", arguments: data);
           }
         }
@@ -374,7 +379,7 @@ class _WelcomePage extends State<JChat> {
                                   ),
                                   hintText: 'Email',
                                   labelText: "Email",
-                                  hintStyle: const TextStyle(color: Colors.blueGrey)),
+                                  hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
 
                             ),
                           ),
@@ -406,7 +411,7 @@ class _WelcomePage extends State<JChat> {
                                       borderRadius: BorderRadius.circular(10.0)
                                   ),
                                   hintText: 'Password',
-                                  hintStyle: const TextStyle(color: Colors.blueGrey)),
+                                  hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
                             ),
                           ),
 

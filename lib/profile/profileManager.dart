@@ -10,6 +10,7 @@ class ProfileManager {
       return null;
     }
 
+
     String? sess_header = ClientAPI.getSessionHeader();
     if (sess_header == null) {
       return null;
@@ -33,7 +34,9 @@ class ProfileManager {
       return null;
     }
 
-    ClientAPI.user_bio = data["bio"] as String;
+    var aboutMe = data["about_me"] as String;
+
+    ClientAPI.user_about_me = aboutMe.isEmpty ? "I am new here. Say hello :)" : aboutMe;
     ClientAPI.user_stats = data["stats"] as String;
 
     if ((data["pfp"] as String).isNotEmpty) {

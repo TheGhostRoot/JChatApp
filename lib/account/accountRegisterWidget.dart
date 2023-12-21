@@ -115,9 +115,6 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                     const SizedBox(height: 20.0),
                     Text(error, style: const TextStyle(color: Colors.red)),
                         Text(suss, style: const TextStyle(color: Colors.green)),
-                    const SizedBox(height: 30.0),
-                    //const Text("Name                                        ", style: TextStyle(color: Colors.white)),
-                    //const SizedBox(height: 10.0),
                     SizedBox(
                       width: 200.0,
                       child: TextField(
@@ -129,12 +126,10 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                               ),
                               hintText: 'Name',
                               labelText: "Name",
-                              hintStyle: const TextStyle(color: Colors.blueGrey)),
+                              hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
                         )
                     ),
                     const SizedBox(height: 20.0),
-                      //  const Text("Email                                        ", style: TextStyle(color: Colors.white)),
-                    //    const SizedBox(height: 10.0),
                     SizedBox(
                       width: 200.0,
                       child: TextField(
@@ -146,12 +141,10 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                             ),
                             labelText: "Email",
                             hintText: 'Email',
-                            hintStyle: const TextStyle(color: Colors.blueGrey)),
+                            hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
                       ),
                     ),
                     const SizedBox(height: 20.0),
-                    //    const Text("Password                                 ", style: TextStyle(color: Colors.white)),
-                    //    const SizedBox(height: 10.0),
                     SizedBox(
                       width: 200.0,
                       child: TextField(
@@ -227,7 +220,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                             ),
                             hintText: 'Password',
                             labelText: "Password",
-                            hintStyle: const TextStyle(color: Colors.blueGrey)),
+                            hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
                       ),
                     ),
                     const SizedBox(height: 10.0),
@@ -237,8 +230,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                     Text("$smallLetters abc",
                         style: const TextStyle(color: Colors.white)),
                     const SizedBox(height: 5.0),
-                    Text("$specialLetters !.@_",
-                        style: const TextStyle(color: Colors.white)),
+                    Text("$specialLetters !.@_", style: const TextStyle(color: Colors.white)),
                     const SizedBox(height: 5.0),
                     Text("$numbers 123",
                         style: const TextStyle(color: Colors.white)),

@@ -145,6 +145,7 @@ class AccountManager {
     ClientAPI.USER_SIGN_KEY = data["sig_key"] as String;
     ClientAPI.sess_id = data["sess_id"] as int;
     ClientAPI.user_id = data["id"] as int;
+    ClientAPI.user_name = data["name"] as String;
 
     return true;
   }
