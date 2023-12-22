@@ -25,9 +25,7 @@ class _HoverTextState extends State<HoverText> {
         children: [
           widget.child,
           if (isHovered)
-               Container(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
+            Container(
                     height: widget.h,
                     width: widget.w,
                     decoration: const BoxDecoration(
@@ -37,7 +35,7 @@ class _HoverTextState extends State<HoverText> {
                         top: Radius.circular(10.0),
                       )
                     ),
-                    child: Center(child: Text(widget.text, style: const TextStyle(fontSize: 12.0, color: Colors.white)))))
+                    child: Center(child: Text(widget.text, style: const TextStyle(fontSize: 12.0, color: Colors.white))))
     ],
     ));
   }
