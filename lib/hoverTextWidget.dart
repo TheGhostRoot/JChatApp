@@ -7,7 +7,9 @@ class HoverText extends StatefulWidget {
   final double h;
   final double w;
 
-  HoverText({required this.child, required this.text, required this.h, required this.w});
+  final bool isRow;
+
+  HoverText({required this.child, required this.text, required this.h, required this.w, required this.isRow});
 
   @override
   _HoverTextState createState() => _HoverTextState();
@@ -21,7 +23,7 @@ class _HoverTextState extends State<HoverText> {
     return MouseRegion(
       onEnter: (_) => setState(() => isHovered = true),
       onExit: (_) => setState(() => isHovered = false),
-      child: Row(
+      child: widget.isRow ? Row(
         children: [
           widget.child,
           if (isHovered)
@@ -37,6 +39,21 @@ class _HoverTextState extends State<HoverText> {
                     ),
                     child: Center(child: Text(widget.text, style: const TextStyle(fontSize: 12.0, color: Colors.white))))
     ],
-    ));
+    ) : Column(
+          children: [
+            widget.child,
+            if (isHovered)
+              Container(
+                  height: widget.h,
+                  width: widget.w,
+                  decoration: const BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(10.0),
+                        top: Radius.circular(10.0),
+                      )
+                  ),
+                  child: Center(child: Text(widget.text, style: const TextStyle(fontSize: 12.0, color: Colors.white)))),
+          ]));
   }
 }

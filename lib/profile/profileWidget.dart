@@ -1,8 +1,12 @@
 
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:jchatapp/hoverTextWidget.dart';
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/navigationWidget.dart';
+import 'package:jchatapp/profile/profileManager.dart';
+import 'package:jchatapp/requestHandler.dart';
 
 class ProfileScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
@@ -19,6 +23,12 @@ class ProfileHome extends State<ProfileScreen> {
   late Map<dynamic, dynamic> data;
   late ClientConfig clientConfig;
   late String userStatsDropdown;
+  String error = "";
+  String suss = "";
+
+  int maxCharactersPerLine = 37;
+  int maxLines = 7;
+
 
   late Color stats;
   bool isHovered = false;
@@ -28,6 +38,9 @@ class ProfileHome extends State<ProfileScreen> {
   var aboutMeController = TextEditingController();
 
   ProfileHome(Map<dynamic, dynamic> given_data) {
+    // 0 = offline
+    // 1 = online
+    // 2 = ignore
     stats = ClientAPI.user_stats[0] == "0" ? Colors.grey : (ClientAPI.user_stats[0] == "1" ? Colors.green : Colors.red);
     userStatsDropdown = stats == Colors.grey ? 'Offline' : (stats == Colors.green ? "Online" : "Ignore");
     data = given_data;
@@ -43,6 +56,29 @@ class ProfileHome extends State<ProfileScreen> {
     statsController.dispose();
     aboutMeController.dispose();
     super.dispose();
+  }
+
+  List<Widget> getBadges() {
+    List<Widget> allBadges = [];
+    var UserBadges = ClientAPI.user_badges;
+    if (UserBadges.isEmpty || !UserBadges.containsKey("badges")) {
+      return allBadges;
+    }
+
+    // badges: [{"name": "TEXT", "icon": "name of asset"}, {...}]
+
+    for (Map<dynamic, dynamic> badge in (UserBadges["badges"] as List<dynamic>)) {
+      allBadges.add(Column(children: [
+          CircleAvatar(
+            radius: 15.0,
+            backgroundColor: const Color.fromRGBO(70, 70, 70, 1),
+            backgroundImage: AssetImage(badge["icon"]),
+          ),
+          Text(badge["name"], style: const TextStyle(color: Colors.white)),
+      ]));
+      allBadges.add(const SizedBox(width: 10));
+    }
+    return allBadges;
   }
 
   @override
@@ -93,6 +129,7 @@ class ProfileHome extends State<ProfileScreen> {
               left: MediaQuery.of(context).size.width * 0.5 + 25,
               top: 230,
               child: HoverText(
+                isRow: true,
                 h: 20,
                 w: 50,
                 text: userStatsDropdown,
@@ -102,8 +139,6 @@ class ProfileHome extends State<ProfileScreen> {
                 ),
               ),
             ),
-
-
 
           Positioned(
             left: MediaQuery.of(context).size.width * 0.5 + 120,
@@ -135,7 +170,15 @@ class ProfileHome extends State<ProfileScreen> {
                   child: Text("🔴 Ignore", style: TextStyle(color: Colors.white))
               ),
             ],
-          )),]),
+          )),
+
+            Positioned(
+              left: MediaQuery.of(context).size.width * 0.5 - 350,
+              top: 220,
+              child:  Row(children: getBadges()),
+            ),
+
+          ]),
 
           const SizedBox(height: 20),
 
@@ -196,7 +239,10 @@ class ProfileHome extends State<ProfileScreen> {
                     top: Radius.circular(10.0),
                   )),
               child: TextField(
+                keyboardType: TextInputType.multiline,
                 controller: aboutMeController,
+                maxLines: 7,
+                minLines: 1,
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -207,13 +253,80 @@ class ProfileHome extends State<ProfileScreen> {
                     hintStyle: const TextStyle(color: Colors.white),
                     labelText: "About Me",
                     labelStyle: const TextStyle(color: Colors.white)),
+                onChanged: (text) {
+                  List<String> lines = text.split('\n');
+                  if (lines.length > maxLines) {
+                    setState(() {
+                      lines.removeRange(maxLines, lines.length);
+                      aboutMeController.text = lines.join("\n");
+                    });
+                  }
+
+                  List<String> updatedLines = [];
+
+                  for (String line in lines) {
+                    if (line.length > maxCharactersPerLine) {
+                      updatedLines.add(line.substring(0, maxCharactersPerLine));
+
+                    } else {
+                      updatedLines.add(line);
+                    }
+                  }
+
+                  setState(() {
+                    aboutMeController.text = updatedLines.join('\n');
+                  });
+
+                },
               ))),
 
-          const SizedBox(height: 50),
+          const SizedBox(height: 10),
+
+          Text(error, style: const TextStyle(color: Colors.red)),
+          Text(suss, style: const TextStyle(color: Colors.green)),
+
+          const SizedBox(height: 10),
 
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               // save the changes if any
+              Map<dynamic, dynamic> changes = {};
+              var mode = (stats == Colors.green ? "1" : (stats == Colors.grey ? "0" : "2"));
+              if (nameController.text != ClientAPI.user_name && nameController.text.isNotEmpty) {
+                changes["name"] = nameController.text;
+              }
+
+              if (mode + statsController.text != ClientAPI.user_stats && statsController.text.isNotEmpty) {
+                // 0 = offline
+                // 1 = online
+                // 2 = ignore
+                changes["stats"] = mode + statsController.text;
+              }
+
+              if (aboutMeController.text != ClientAPI.user_about_me && aboutMeController.text.isNotEmpty) {
+                changes["about_me"] = aboutMeController.text;
+              }
+
+              if (changes.isNotEmpty) {
+                if (await ProfileManager.updateProfile(changes)) {
+                  setState(() {
+                    suss = "Saved successfully";
+                  });
+
+
+                } else {
+                  setState(() {
+                    error = "Failed to save changes";
+                  });
+
+                }
+
+              } else {
+                setState(() {
+                  error = "Can't save unchanged fields";
+                });
+              }
+
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.cyan,

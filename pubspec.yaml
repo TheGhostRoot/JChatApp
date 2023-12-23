@@ -72,6 +72,8 @@ flutter:
      - "images/welcome_background2.png"
      - "images/pfp.png"
      - "images/black.png"
+     - "images/dev_badge.png"
+     - "images/supporter_badge.png"
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

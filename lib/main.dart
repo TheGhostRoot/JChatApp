@@ -41,6 +41,7 @@ class ClientAPI {
   static Image user_pfp =  const Image(image: AssetImage("images/pfp.png"));
   static Image user_banner = const Image(image: AssetImage("images/black.png"));
   static String user_name = "";
+  static Map<String, Object> user_badges = {};
   static String user_about_me = "";
   static String user_stats = "";
   static int sess_id = 0;

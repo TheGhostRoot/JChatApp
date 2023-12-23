@@ -46,9 +46,16 @@ class ProfileManager {
     }
 
     if ((data["banner"] as String).isNotEmpty) {
-      // banner will be empty if there is no profile pic
-      // banner won't be empty if user sets a picture
+      // banner will be empty if there is no profile banner
+      // banner won't be empty if user sets a banner
       ClientAPI.user_banner = data["banner"] as Image;
+    }
+
+    if ((data["badges"] as String).isNotEmpty) {
+      // badges will be empty if there is no profile badges
+      // badges won't be empty if user sets a badges
+      ClientAPI.user_badges = ClientAPI.jwt.getDataNoEncryption((data["badges"] as String)) ?? {};
+
     }
 
     return ClientAPI.jwt.getData(res);
@@ -89,3 +96,50 @@ class ProfileManager {
 
 
 }
+
+
+/*
+// for now I will add badges
+              // badges: [{"name": "TEXT", "icon": "name of asset"}, {...}]
+
+              Map<dynamic, dynamic> badges1 = {
+                "name": "Dev",
+                "icon": "images/dev_badge.png"
+              };
+
+              Map<dynamic, dynamic> badges2 = {
+                "name": "Supporter",
+                "icon": "images/supporter_badge.png"
+              };
+
+              List<Map<dynamic, dynamic>> allBadges = [badges1, badges2];
+
+              Map<dynamic, dynamic> finalMap = {"badges": allBadges};
+
+              String? jwtBadges = ClientAPI.jwt.generateGlobalJwt(finalMap, false);
+              if (jwtBadges == null) {
+                return;
+              }
+
+              Map<dynamic, dynamic> claims = {
+                "badges": jwtBadges
+              };
+
+              String? authJWT = ClientAPI.jwt.generateUserJwt(claims);
+              if (authJWT == null) {
+                return;
+              }
+
+              String? sess_header = ClientAPI.getSessionHeader();
+              if (sess_header == null) {
+                return;
+              }
+
+              Map<String, String> header = {
+                ClientAPI.HEADER_AUTH: authJWT,
+                ClientAPI.HEADER_SESS: sess_header
+              };
+
+              String? res = await Requests.patch(ClientAPI.server + "/profile", headers: header);
+              Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+ */

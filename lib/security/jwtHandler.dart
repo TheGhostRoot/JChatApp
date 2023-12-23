@@ -47,6 +47,7 @@ class JwtHandle {
       claims = JWT.verify(jwt, SecretKey(ClientAPI.USER_SIGN_KEY), checkHeaderType: false, checkExpiresIn: false, checkNotBefore: false).payload;
 
     } catch (e) {
+      print(e);
       claims = null;
     }
     return claims;
