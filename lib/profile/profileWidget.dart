@@ -1,12 +1,15 @@
 
-import 'dart:ffi';
+import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import 'package:jchatapp/hoverTextWidget.dart';
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/navigationWidget.dart';
 import 'package:jchatapp/profile/profileManager.dart';
-import 'package:jchatapp/requestHandler.dart';
 
 class ProfileScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
@@ -25,6 +28,9 @@ class ProfileHome extends State<ProfileScreen> {
   late String userStatsDropdown;
   String error = "";
   String suss = "";
+
+  String tempPfpBase64 = ClientAPI.user_pfp_base64;
+  String tempBannerBase64 = ClientAPI.user_banner_base64;
 
   int maxCharactersPerLine = 37;
   int maxLines = 7;
@@ -81,6 +87,33 @@ class ProfileHome extends State<ProfileScreen> {
     return allBadges;
   }
 
+  Future<String?> pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+
+      if (result != null) {
+        // File picked successfully
+        List<File> files = result.paths.map((path) => File(path!)).toList();
+        if (files.length == 1) {
+          File f = files[0];
+          // 50MB for both video and image.
+          if (f.lengthSync() > 50000000) {
+            return null;
+          }
+
+          return base64Encode(f.readAsBytesSync());
+        }
+        return null;
+
+      }
+      return null;
+
+    } catch (e) {
+      return null;
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,11 +126,17 @@ class ProfileHome extends State<ProfileScreen> {
                 child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Container(
+                       color: const Color.fromRGBO(70, 70, 70, 1),
                         width: double.infinity,
                         height: 200,
                         child: GestureDetector(
-                          onTap: () {
-                            print("Change Banner");
+                          onTap: () async {
+                            String? img = await pickFile();
+                            if (img != null) {
+                              setState(() {
+                                tempBannerBase64 = img;
+                              });
+                            }
                           },
                           child: Container(decoration: BoxDecoration(
                               borderRadius: const BorderRadius.vertical(
@@ -105,7 +144,7 @@ class ProfileHome extends State<ProfileScreen> {
                                 top: Radius.circular(20.0),
                               ),
                               image: DecorationImage(
-                                  image: ClientAPI.user_banner.image,
+                                  image: Image.memory(base64Decode(tempBannerBase64)).image,
                                   fit: BoxFit.fill)))
                         ))),
               ),
@@ -114,12 +153,18 @@ class ProfileHome extends State<ProfileScreen> {
                 child: Center(child: Column(children: [
                   const SizedBox(height: 150),
                   GestureDetector(
-                    onTap: () {
-                      print("Change pfp");
+                    onTap: () async {
+                      String? img = await pickFile();
+                      if (img != null) {
+                        setState(() {
+                          tempPfpBase64 = img;
+                        });
+                      }
                     },
                     child: CircleAvatar(
+                      backgroundColor: const Color.fromRGBO(70, 70, 70, 1),
                           radius: 50.0,
-                          backgroundImage: ClientAPI.user_pfp.image,
+                          backgroundImage: Image.memory(base64Decode(tempPfpBase64)).image,
                         ),
                       )],
                 )
@@ -307,16 +352,45 @@ class ProfileHome extends State<ProfileScreen> {
                 changes["about_me"] = aboutMeController.text;
               }
 
+              if (tempPfpBase64 != ClientAPI.user_pfp_base64) {
+                changes["pfp"] = tempPfpBase64;
+              }
+
+              if (tempBannerBase64 != ClientAPI.user_banner_base64) {
+                changes["banner"] = tempBannerBase64;
+              }
+
               if (changes.isNotEmpty) {
                 if (await ProfileManager.updateProfile(changes)) {
                   setState(() {
                     suss = "Saved successfully";
+                    if (changes.containsKey("pfp")) {
+                      ClientAPI.user_pfp_base64 = tempPfpBase64;
+                    }
+
+                    if (changes.containsKey("banner")) {
+                      ClientAPI.user_banner_base64 = tempBannerBase64;
+                    }
+
+                    if (changes.containsKey("about_me")) {
+                      ClientAPI.user_about_me = aboutMeController.text;
+                    }
+
+                    if (changes.containsKey("stats")) {
+                      ClientAPI.user_stats = mode + statsController.text;
+                    }
+
+                    if (changes.containsKey("name")) {
+                      ClientAPI.user_name = nameController.text;
+                    }
                   });
 
 
                 } else {
                   setState(() {
                     error = "Failed to save changes";
+                    tempPfpBase64 = ClientAPI.user_pfp_base64;
+                    tempBannerBase64 = ClientAPI.user_banner_base64;
                   });
 
                 }
@@ -324,6 +398,8 @@ class ProfileHome extends State<ProfileScreen> {
               } else {
                 setState(() {
                   error = "Can't save unchanged fields";
+                  tempPfpBase64 = ClientAPI.user_pfp_base64;
+                  tempBannerBase64 = ClientAPI.user_banner_base64;
                 });
               }
 

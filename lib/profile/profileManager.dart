@@ -42,13 +42,13 @@ class ProfileManager {
     if ((data["pfp"] as String).isNotEmpty) {
       // pfp will be empty if there is no profile pic
       // pfp won't be empty if user sets a picture
-      ClientAPI.user_pfp = data["pfp"] as Image;
+      ClientAPI.user_pfp_base64 = data["pfp"] as String;
     }
 
     if ((data["banner"] as String).isNotEmpty) {
       // banner will be empty if there is no profile banner
       // banner won't be empty if user sets a banner
-      ClientAPI.user_banner = data["banner"] as Image;
+      ClientAPI.user_banner_base64 = data["banner"] as String;
     }
 
     if ((data["badges"] as String).isNotEmpty) {
@@ -82,10 +82,6 @@ class ProfileManager {
     header[ClientAPI.HEADER_SESS] = sess_header;
 
     String? res = await Requests.patch("${ClientAPI.server}/profile", headers: header);
-    if (res == null) {
-      return false;
-    }
-
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
     if (data == null || !data.containsKey("stats")) {
       return false;

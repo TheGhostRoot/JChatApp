@@ -1,7 +1,11 @@
 //import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:image/image.dart' as img;
 import 'package:jchatapp/account/accountManager.dart';
 import 'package:jchatapp/account/accountRegisterWidget.dart';
 import 'package:jchatapp/friends/friend.dart';
@@ -24,11 +28,6 @@ class ClientAPI {
   static late Cryption cryption;
   static late JwtHandle jwt;
 
-  static void SetUp() {
-    cryption = Cryption();
-    jwt = JwtHandle();
-  }
-
   static String USER_SIGN_KEY = "";
   static String USER_ENCRYP_KEY = "";
   static String HEADER_AUTH = "Authorization";
@@ -38,8 +37,8 @@ class ClientAPI {
   static int captcha_id = 0;
   static int captcha_time = 20;
   static int user_id = 0;
-  static Image user_pfp =  const Image(image: AssetImage("images/pfp.png"));
-  static Image user_banner = const Image(image: AssetImage("images/black.png"));
+  static late String user_pfp_base64;
+  static late String user_banner_base64;
   static String user_name = "";
   static Map<String, Object> user_badges = {};
   static String user_about_me = "";
@@ -47,6 +46,18 @@ class ClientAPI {
   static int sess_id = 0;
 
   static List friends = <Friend>[];
+
+  static Future<void> SetUp() async {
+    cryption = Cryption();
+    jwt = JwtHandle();
+
+      ByteData pfpData = await rootBundle.load("images/pfp.png");
+      ByteData bannerData = await rootBundle.load("images/black.png");
+      List<int> pfpBytes = img.encodePng(img.decodeImage(Uint8List.fromList(pfpData.buffer.asUint8List()))!);
+      List<int> bannerBytes = img.encodePng(img.decodeImage(Uint8List.fromList(bannerData.buffer.asUint8List()))!);
+      user_pfp_base64 = base64Encode(Uint8List.fromList(pfpBytes));
+      user_banner_base64 = base64Encode(Uint8List.fromList(bannerBytes));
+  }
 
   static String? getSessionHeader() {
     return cryption.globalEncrypt(sess_id.toString());
@@ -121,9 +132,10 @@ class ClientConfig {
 }
 
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   // "C:\\JChat"
-  ClientAPI.SetUp();
+  await ClientAPI.SetUp();
   ClientConfig clientConfig = ClientConfig(null);
   /*
   * By default you would have to integrate your background service on a platform specific way.
@@ -233,7 +245,7 @@ class _WelcomePage extends State<JChat> {
             if (!isRememberMe) {
               ClientConfig clientConfig = (data["client_config"] as ClientConfig);
               clientConfig.config["remember_me"]["id"] = ClientAPI.user_id;
-              clientConfig.config["remember_me"]["pfp"] = ClientAPI.user_pfp;
+              clientConfig.config["remember_me"]["pfp"] = ClientAPI.user_pfp_base64;
               clientConfig.updateConfig(clientConfig.config);
             }
 
@@ -356,7 +368,7 @@ class _WelcomePage extends State<JChat> {
                                         child: Center(
                                           child: CircleAvatar(
                                             radius: 50.0,
-                                            backgroundImage: (clientConfig.config["remember_me"]["pfp"] as Image).image,
+                                            backgroundImage: Image.memory(base64Decode(clientConfig.config["remember_me"]["pfp"])).image,
                                           ),
                                         ),
                                       ),
@@ -367,8 +379,6 @@ class _WelcomePage extends State<JChat> {
                         Text(error, style: const TextStyle(color: Colors.red)),
 
                         const SizedBox(height: 10.0),
-                        //const Text("Email                                        ", style: TextStyle(color: Colors.white)),
-                        //const SizedBox(height: 10.0),
                         SizedBox(
                             width: 200.0,
                             child: TextField(
@@ -386,8 +396,6 @@ class _WelcomePage extends State<JChat> {
                           ),
 
                         const SizedBox(height: 20.0),
-                        //const Text("Password                                 ", style: TextStyle(color: Colors.white)),
-                        //const SizedBox(height: 10.0),
                         SizedBox(width: 200.0,
                             child: TextField(
                               obscureText: !_passwordVisible,
