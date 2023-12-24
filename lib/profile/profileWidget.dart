@@ -10,6 +10,8 @@ import 'package:jchatapp/hoverTextWidget.dart';
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/navigationWidget.dart';
 import 'package:jchatapp/profile/profileManager.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_player_media_kit/video_player_media_kit.dart';
 
 class ProfileScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
@@ -32,9 +34,14 @@ class ProfileHome extends State<ProfileScreen> {
   String tempPfpBase64 = ClientAPI.user_pfp_base64;
   String tempBannerBase64 = ClientAPI.user_banner_base64;
 
+  late Widget pfp_widget;
+  late Widget banner_widget;
+
   int maxCharactersPerLine = 37;
   int maxLines = 7;
 
+  VideoPlayerController? videoPlayerControllerPfp;
+  VideoPlayerController? videoPlayerControllerBanner;
 
   late Color stats;
   bool isHovered = false;
@@ -42,6 +49,157 @@ class ProfileHome extends State<ProfileScreen> {
   var nameController = TextEditingController();
   var statsController = TextEditingController();
   var aboutMeController = TextEditingController();
+
+  File makeFile(String base64) {
+    File tempFile = File('${DateTime
+        .now()
+        .millisecondsSinceEpoch}.mp4');
+    tempFile.writeAsBytesSync(base64Decode(base64.substring(6)));
+    return tempFile;
+  }
+
+  void setupPfpVideo() {
+    if (videoPlayerControllerPfp == null) {
+      videoPlayerControllerPfp = VideoPlayerController.file(makeFile(tempPfpBase64));
+
+      videoPlayerControllerPfp!.addListener(() {
+        setState(() {});
+      });
+      videoPlayerControllerPfp!.setLooping(true);
+      videoPlayerControllerPfp!.setVolume(0);
+      videoPlayerControllerPfp!.initialize().then((_) => setState(() {}));
+      videoPlayerControllerPfp!.play();
+    }
+
+    /*
+    pfp_widget = AspectRatio(
+      aspectRatio: videoPlayerControllerPfp!.value.aspectRatio,
+      child: Stack(
+        children: <Widget>[
+          VideoPlayer(videoPlayerControllerPfp!),
+          //VideoProgressIndicator(videoPlayerControllerPfp!, allowScrubbing: true),
+        ],
+      ),
+    );
+
+     */
+    pfp_widget = CircleAvatar(radius: 50.0, backgroundColor: const Color.fromRGBO(70, 70, 70, 1), child: VideoPlayer(videoPlayerControllerPfp!));
+  }
+
+  void setupPfpVideoWithState() {
+    setState(() {
+      if (videoPlayerControllerPfp == null) {
+        videoPlayerControllerPfp = VideoPlayerController.file(makeFile(tempPfpBase64));
+
+        videoPlayerControllerPfp!.addListener(() {
+          setState(() {});
+        });
+        videoPlayerControllerPfp!.setLooping(true);
+        videoPlayerControllerPfp!.setVolume(0);
+        videoPlayerControllerPfp!.initialize().then((_) => setState(() {}));
+        videoPlayerControllerPfp!.play();
+      }
+
+      /*
+      pfp_widget = AspectRatio(
+        aspectRatio: videoPlayerControllerPfp!.value.aspectRatio,
+        child: Stack(
+          children: <Widget>[
+            VideoPlayer(videoPlayerControllerPfp!),
+            //VideoProgressIndicator(videoPlayerControllerPfp!, allowScrubbing: true),
+          ],
+        ),
+      );
+
+       */
+
+      pfp_widget = CircleAvatar(radius: 50.0, backgroundColor: const Color.fromRGBO(70, 70, 70, 1), child: VideoPlayer(videoPlayerControllerPfp!));
+    });
+
+  }
+
+  void setupBannerVideo() {
+    if (videoPlayerControllerBanner == null) {
+      videoPlayerControllerBanner = VideoPlayerController.file(makeFile(tempBannerBase64));
+
+      videoPlayerControllerBanner!.addListener(() {
+        setState(() {});
+      });
+      videoPlayerControllerBanner!.setLooping(true);
+      videoPlayerControllerBanner!.setVolume(0);
+      videoPlayerControllerBanner!.initialize().then((_) => setState(() {}));
+      videoPlayerControllerBanner!.play();
+    }
+
+    /*
+    banner_widget = AspectRatio(
+      aspectRatio: videoPlayerControllerBanner!.value.aspectRatio,
+      child: Stack(
+        children: <Widget>[
+          VideoPlayer(videoPlayerControllerBanner!),
+          //VideoProgressIndicator(videoPlayerControllerBanner!, allowScrubbing: true),
+        ],
+      ),
+    );
+
+     */
+
+    banner_widget = Container(decoration: const BoxDecoration(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(20.0),
+          top: Radius.circular(20.0),
+        )), child: VideoPlayer(videoPlayerControllerBanner!));
+  }
+
+  void setupBannerVideoWithState() {
+    setState(() {
+
+      if (videoPlayerControllerBanner == null) {
+        videoPlayerControllerBanner = VideoPlayerController.file(makeFile(tempBannerBase64));
+
+        videoPlayerControllerBanner!.addListener(() {
+          setState(() {});
+        });
+        videoPlayerControllerBanner!.setLooping(true);
+        videoPlayerControllerBanner!.setVolume(0);
+        videoPlayerControllerBanner!.initialize().then((_) => setState(() {}));
+        videoPlayerControllerBanner!.play();
+      }
+
+      /*
+      banner_widget = AspectRatio(
+        aspectRatio: videoPlayerControllerBanner!.value.aspectRatio,
+        child: Stack(
+          children: <Widget>[
+            VideoPlayer(videoPlayerControllerBanner!),
+            //VideoProgressIndicator(videoPlayerControllerBanner!, allowScrubbing: true),
+          ],
+        ),
+      );
+
+       */
+
+      banner_widget = Container(decoration: const BoxDecoration(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20.0),
+            top: Radius.circular(20.0),
+          )), child: VideoPlayer(videoPlayerControllerBanner!));
+    });
+
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    if (tempPfpBase64.startsWith("video;")) {
+      setupPfpVideo();
+    }
+
+    if (tempBannerBase64.startsWith("video;")) {
+      setupBannerVideo();
+    }
+  }
 
   ProfileHome(Map<dynamic, dynamic> given_data) {
     // 0 = offline
@@ -54,6 +212,31 @@ class ProfileHome extends State<ProfileScreen> {
     nameController.text = ClientAPI.user_name;
     statsController.text = ClientAPI.user_stats.substring(1);
     aboutMeController.text = ClientAPI.user_about_me;
+
+    if (tempPfpBase64.startsWith("video;")) {
+      setupPfpVideo();
+
+    } else {
+      pfp_widget = CircleAvatar(
+        radius: 50.0,
+        backgroundImage: Image.memory(base64Decode(tempPfpBase64)).image,
+      );
+    }
+
+    if (tempBannerBase64.startsWith("video;")) {
+      setupBannerVideo();
+
+    } else {
+      banner_widget = Container(decoration: BoxDecoration(
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(20.0),
+            top: Radius.circular(20.0),
+          ),
+          image: DecorationImage(
+              image: Image.memory(base64Decode(tempBannerBase64)).image,
+              fit: BoxFit.fill)));
+    }
+
   }
 
   @override
@@ -61,6 +244,12 @@ class ProfileHome extends State<ProfileScreen> {
     nameController.dispose();
     statsController.dispose();
     aboutMeController.dispose();
+    if (videoPlayerControllerBanner != null) {
+      videoPlayerControllerBanner!.dispose();
+    }
+    if (videoPlayerControllerPfp != null) {
+      videoPlayerControllerPfp!.dispose();
+    }
     super.dispose();
   }
 
@@ -87,18 +276,37 @@ class ProfileHome extends State<ProfileScreen> {
     return allBadges;
   }
 
-  Future<String?> pickFile() async {
+  Future<String?> pickFile(bool isPfp) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.media);
 
       if (result != null) {
         // File picked successfully
         List<File> files = result.paths.map((path) => File(path!)).toList();
         if (files.length == 1) {
           File f = files[0];
-          // 50MB for both video and image.
+          // 50MB
           if (f.lengthSync() > 50000000) {
             return null;
+          }
+
+          if (f.path.endsWith("mp4") || f.path.endsWith("gif") ||
+              f.path.endsWith("avi") || f.path.endsWith("flv") ||
+              f.path.endsWith("mkv") || f.path.endsWith("mov") ||
+              f.path.endsWith("mpeg") || f.path.endsWith("webm") || f.path.endsWith("wmv")) {
+            // it's video
+
+            String v = "video;${base64Encode(f.readAsBytesSync())}";
+            if (isPfp) {
+              tempPfpBase64 = v;
+              setupPfpVideoWithState();
+
+            } else {
+              tempBannerBase64 = v;
+              setupBannerVideoWithState();
+            }
+
+            return v;
           }
 
           return base64Encode(f.readAsBytesSync());
@@ -122,57 +330,56 @@ class ProfileHome extends State<ProfileScreen> {
         children: [
           NavigationHome.getTitle(),
           Stack(children: [
-              SizedBox(
-                child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
+              Center(
+                child: Container(
                        color: const Color.fromRGBO(70, 70, 70, 1),
-                        width: double.infinity,
-                        height: 200,
+                        width: 700,
+                        height: 300,
                         child: GestureDetector(
                           onTap: () async {
-                            String? img = await pickFile();
-                            if (img != null) {
+                            String? img = await pickFile(false);
+                            if (img != null && !img.startsWith("video;")) {
                               setState(() {
                                 tempBannerBase64 = img;
+                                banner_widget = Container(decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.vertical(
+                                      bottom: Radius.circular(20.0),
+                                      top: Radius.circular(20.0),
+                                    ),
+                                    image: DecorationImage(
+                                        image: Image.memory(base64Decode(tempBannerBase64)).image,
+                                        fit: BoxFit.fill)));
                               });
                             }
                           },
-                          child: Container(decoration: BoxDecoration(
-                              borderRadius: const BorderRadius.vertical(
-                                bottom: Radius.circular(20.0),
-                                top: Radius.circular(20.0),
-                              ),
-                              image: DecorationImage(
-                                  image: Image.memory(base64Decode(tempBannerBase64)).image,
-                                  fit: BoxFit.fill)))
-                        ))),
+                          child: banner_widget
+                        )),
               ),
               SizedBox(child: Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Center(child: Column(children: [
-                  const SizedBox(height: 150),
+                  const SizedBox(height: 230),
                   GestureDetector(
                     onTap: () async {
-                      String? img = await pickFile();
-                      if (img != null) {
+                      String? img = await pickFile(true);
+                      if (img != null && !img.startsWith("video;")) {
                         setState(() {
                           tempPfpBase64 = img;
+                          pfp_widget = CircleAvatar(
+                            radius: 50.0,
+                            backgroundImage: Image.memory(base64Decode(tempPfpBase64)).image,
+                          );
                         });
                       }
                     },
-                    child: CircleAvatar(
-                      backgroundColor: const Color.fromRGBO(70, 70, 70, 1),
-                          radius: 50.0,
-                          backgroundImage: Image.memory(base64Decode(tempPfpBase64)).image,
-                        ),
+                    child: pfp_widget,
                       )],
                 )
               ))),
 
             Positioned(
               left: MediaQuery.of(context).size.width * 0.5 + 25,
-              top: 230,
+              top: 300,
               child: HoverText(
                 isRow: true,
                 h: 20,
@@ -187,7 +394,7 @@ class ProfileHome extends State<ProfileScreen> {
 
           Positioned(
             left: MediaQuery.of(context).size.width * 0.5 + 120,
-            top: 220,
+            top: 300,
               child: DropdownButton<String>(
             value: userStatsDropdown,
             icon: const Icon(Icons.menu),
@@ -219,8 +426,8 @@ class ProfileHome extends State<ProfileScreen> {
 
             Positioned(
               left: MediaQuery.of(context).size.width * 0.5 - 350,
-              top: 220,
-              child:  Row(children: getBadges()),
+              top: 300,
+              child: Row(children: getBadges()),
             ),
 
           ]),

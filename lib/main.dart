@@ -15,6 +15,7 @@ import 'package:jchatapp/security/cryptionHandler.dart';
 import 'package:jchatapp/security/jwtHandler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jchatapp/captcha/captchaWidget.dart';
+import 'package:video_player_media_kit/video_player_media_kit.dart';
 
 // import 'package:yaml/yaml.dart';
 
@@ -180,6 +181,14 @@ Run flutter pub get
 
   // TODO fix a bug on server side `captcha_time` is not updating.
 
+  VideoPlayerMediaKit.ensureInitialized(
+    macOS: true,
+    windows: true,
+    linux: true,
+    android: true,
+    iOS: true
+  );
+
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
       home: JChat(map),
@@ -224,6 +233,16 @@ class _WelcomePage extends State<JChat> {
   bool _passwordVisible = false;
 // android:usesCleartextTraffic="true"  -> AndroidMainfest.xml
   // <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+  /*
+  <manifest>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <application android:usesCleartextTraffic="true"></aplication>
+</manifest>
+
+https://pub.dev/packages/video_player
+https://pub.dev/packages/video_viewer
+   */
 
   _WelcomePage(Map<dynamic, dynamic> given_data) {
     data = given_data;

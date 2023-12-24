@@ -1,5 +1,3 @@
-
-import 'package:flutter/src/widgets/image.dart';
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/requestHandler.dart';
 
@@ -38,17 +36,19 @@ class ProfileManager {
 
     ClientAPI.user_about_me = aboutMe.isEmpty ? "I am new here. Say hello :)" : aboutMe;
     ClientAPI.user_stats = data["stats"] as String;
+    String pfp = data["pfp"] as String;
+    String banner = data["banner"] as String;
 
-    if ((data["pfp"] as String).isNotEmpty) {
+    if (pfp.isNotEmpty) {
       // pfp will be empty if there is no profile pic
       // pfp won't be empty if user sets a picture
-      ClientAPI.user_pfp_base64 = data["pfp"] as String;
+      ClientAPI.user_pfp_base64 = pfp;
     }
 
-    if ((data["banner"] as String).isNotEmpty) {
+    if (banner.isNotEmpty) {
       // banner will be empty if there is no profile banner
       // banner won't be empty if user sets a banner
-      ClientAPI.user_banner_base64 = data["banner"] as String;
+      ClientAPI.user_banner_base64 = banner;
     }
 
     if ((data["badges"] as String).isNotEmpty) {
