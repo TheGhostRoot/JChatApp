@@ -50,17 +50,30 @@ class ProfileHome extends State<ProfileScreen> {
   var statsController = TextEditingController();
   var aboutMeController = TextEditingController();
 
-  File makeFile(String base64) {
-    File tempFile = File('${DateTime
-        .now()
-        .millisecondsSinceEpoch}.mp4');
-    tempFile.writeAsBytesSync(base64Decode(base64.substring(6)));
-    return tempFile;
+  Map<String, String>? getHeaders() {
+    String? sess = ClientAPI.getSessionHeader();
+    if (sess == null) {
+      return null;
+    }
+
+    String? authHeader = ClientAPI.jwt.generateUserJwt({"id": ClientAPI.user_id});
+    if (authHeader == null) {
+      return null;
+    }
+
+    return {ClientAPI.HEADER_SESS: sess, ClientAPI.HEADER_AUTH: authHeader};
   }
 
-  void setupPfpVideo() {
+  void setupPfpVideo(File? file) {
     if (videoPlayerControllerPfp == null) {
-      videoPlayerControllerPfp = VideoPlayerController.file(makeFile(tempPfpBase64));
+      if (file != null) {
+        videoPlayerControllerPfp = VideoPlayerController.file(file);
+
+      } else {
+        videoPlayerControllerPfp = VideoPlayerController.networkUrl(
+            Uri.http("192.168.0.215:25500", "/api/v1/profile/avatar"),
+            httpHeaders: getHeaders() ?? {});
+      }
 
       videoPlayerControllerPfp!.addListener(() {
         setState(() {});
@@ -83,14 +96,21 @@ class ProfileHome extends State<ProfileScreen> {
     );
 
      */
-    pfp_widget = CircleAvatar(radius: 50.0, backgroundColor: const Color.fromRGBO(70, 70, 70, 1), child: VideoPlayer(videoPlayerControllerPfp!));
+    pfp_widget = CircleAvatar(radius: 50, child: VideoPlayer(videoPlayerControllerPfp!));
+    //(radius: 50.0, backgroundColor: const Color.fromRGBO(70, 70, 70, 1), child: VideoPlayer(videoPlayerControllerPfp!));
   }
 
-  void setupPfpVideoWithState() {
+  void setupPfpVideoWithState(File? file) {
     setState(() {
       if (videoPlayerControllerPfp == null) {
-        videoPlayerControllerPfp = VideoPlayerController.file(makeFile(tempPfpBase64));
+        if (file != null) {
+          videoPlayerControllerPfp = VideoPlayerController.file(file);
 
+        } else {
+          videoPlayerControllerPfp = VideoPlayerController.networkUrl(
+              Uri.http("192.168.0.215:25500", "/api/v1/profile/avatar"),
+              httpHeaders: getHeaders() ?? {});
+        }
         videoPlayerControllerPfp!.addListener(() {
           setState(() {});
         });
@@ -110,17 +130,23 @@ class ProfileHome extends State<ProfileScreen> {
           ],
         ),
       );
-
        */
 
-      pfp_widget = CircleAvatar(radius: 50.0, backgroundColor: const Color.fromRGBO(70, 70, 70, 1), child: VideoPlayer(videoPlayerControllerPfp!));
+      pfp_widget = CircleAvatar(radius: 50, child: VideoPlayer(videoPlayerControllerPfp!));
     });
 
   }
 
-  void setupBannerVideo() {
+  void setupBannerVideo(File? file) {
     if (videoPlayerControllerBanner == null) {
-      videoPlayerControllerBanner = VideoPlayerController.file(makeFile(tempBannerBase64));
+      if (file != null) {
+        videoPlayerControllerBanner = VideoPlayerController.file(file);
+
+      } else {
+        videoPlayerControllerBanner = VideoPlayerController.networkUrl(
+            Uri.http("192.168.0.215:25500", "/api/v1/profile/banner"),
+            httpHeaders: getHeaders() ?? {});
+      }
 
       videoPlayerControllerBanner!.addListener(() {
         setState(() {});
@@ -145,17 +171,26 @@ class ProfileHome extends State<ProfileScreen> {
      */
 
     banner_widget = Container(decoration: const BoxDecoration(
+      color: Color.fromRGBO(70, 70, 70, 1),
         borderRadius: BorderRadius.vertical(
           bottom: Radius.circular(20.0),
           top: Radius.circular(20.0),
         )), child: VideoPlayer(videoPlayerControllerBanner!));
   }
 
-  void setupBannerVideoWithState() {
+  void setupBannerVideoWithState(File? file) {
     setState(() {
 
       if (videoPlayerControllerBanner == null) {
-        videoPlayerControllerBanner = VideoPlayerController.file(makeFile(tempBannerBase64));
+        if (file != null) {
+          videoPlayerControllerBanner = VideoPlayerController.file(file);
+
+        } else {
+          videoPlayerControllerBanner = VideoPlayerController.networkUrl(
+              Uri.http("192.168.0.215:25500", "/api/v1/profile/banner"),
+              httpHeaders: getHeaders() ?? {});
+        }
+
 
         videoPlayerControllerBanner!.addListener(() {
           setState(() {});
@@ -180,6 +215,7 @@ class ProfileHome extends State<ProfileScreen> {
        */
 
       banner_widget = Container(decoration: const BoxDecoration(
+          color: Color.fromRGBO(70, 70, 70, 1),
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(20.0),
             top: Radius.circular(20.0),
@@ -193,11 +229,11 @@ class ProfileHome extends State<ProfileScreen> {
   void initState() {
     super.initState();
     if (tempPfpBase64.startsWith("video;")) {
-      setupPfpVideo();
+      setupPfpVideo(null);
     }
 
     if (tempBannerBase64.startsWith("video;")) {
-      setupBannerVideo();
+      setupBannerVideo(null);
     }
   }
 
@@ -214,7 +250,7 @@ class ProfileHome extends State<ProfileScreen> {
     aboutMeController.text = ClientAPI.user_about_me;
 
     if (tempPfpBase64.startsWith("video;")) {
-      setupPfpVideo();
+      setupPfpVideo(null);
 
     } else {
       pfp_widget = CircleAvatar(
@@ -224,7 +260,7 @@ class ProfileHome extends State<ProfileScreen> {
     }
 
     if (tempBannerBase64.startsWith("video;")) {
-      setupBannerVideo();
+      setupBannerVideo(null);
 
     } else {
       banner_widget = Container(decoration: BoxDecoration(
@@ -299,11 +335,11 @@ class ProfileHome extends State<ProfileScreen> {
             String v = "video;${base64Encode(f.readAsBytesSync())}";
             if (isPfp) {
               tempPfpBase64 = v;
-              setupPfpVideoWithState();
+              setupPfpVideoWithState(f);
 
             } else {
               tempBannerBase64 = v;
-              setupBannerVideoWithState();
+              setupBannerVideoWithState(f);
             }
 
             return v;

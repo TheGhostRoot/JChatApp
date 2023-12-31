@@ -33,7 +33,7 @@ class ClientAPI {
   static String USER_ENCRYP_KEY = "";
   static String HEADER_AUTH = "Authorization";
   static String HEADER_SESS = "SessionID";
-  static String HEADER_CAPTCHA = "CapctchaID";
+  static String HEADER_CAPTCHA = "CaptchaID";
 
   static int captcha_id = 0;
   static int captcha_time = 20;

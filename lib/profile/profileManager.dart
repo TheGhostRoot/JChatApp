@@ -54,8 +54,8 @@ class ProfileManager {
     if ((data["badges"] as String).isNotEmpty) {
       // badges will be empty if there is no profile badges
       // badges won't be empty if user sets a badges
-      ClientAPI.user_badges = ClientAPI.jwt.getDataNoEncryption((data["badges"] as String)) ?? {};
-
+      ClientAPI.user_badges =
+          ClientAPI.jwt.getDataNoEncryption((data["badges"] as String)) ?? {};
     }
 
     return ClientAPI.jwt.getData(res);
@@ -72,6 +72,18 @@ class ProfileManager {
       return false;
     }
 
+    Map<String, dynamic> body = {"id": ClientAPI.user_id};
+
+    if (changes.containsKey("pfp")) {
+      body["pfp"] = changes["pfp"];
+      changes["pfp"] = true;
+    }
+
+    if (changes.containsKey("banner")) {
+      body["banner"] = changes["banner"];
+      changes["banner"] = true;
+    }
+
     String? authData = ClientAPI.jwt.generateUserJwt(changes);
     if (authData == null) {
       return false;
@@ -79,10 +91,18 @@ class ProfileManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
+    header["Host"] = "192.168.0.215:25500";
+    header["Accept"] = "*/*";
+    header["Content-Length"] = "133848";
+    header["Accept-Encoding"] = "gzip, deflate, br";
+    header["Content-Type"] = "application/x-www-form-urlencoded";
     header[ClientAPI.HEADER_SESS] = sess_header;
 
-    String? res = await Requests.patch("${ClientAPI.server}/profile", headers: header);
+    print('1');
+
+    String? res = await Requests.post("${ClientAPI.server}/profile", headers: header, body: body);
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+    print(data);
     if (data == null || !data.containsKey("stats")) {
       return false;
     }
