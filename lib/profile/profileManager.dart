@@ -89,18 +89,9 @@ class ProfileManager {
       return false;
     }
 
-    Map<String, String> header = {};
-    header[ClientAPI.HEADER_AUTH] = authData;
-    header["Host"] = "192.168.0.215:25500";
-    header["Accept"] = "*/*";
-    header["Content-Length"] = "133848";
-    header["Accept-Encoding"] = "gzip, deflate, br";
-    header["Content-Type"] = "application/x-www-form-urlencoded";
-    header[ClientAPI.HEADER_SESS] = sess_header;
-
-    print('1');
-
-    String? res = await Requests.post("${ClientAPI.server}/profile", headers: header, body: body);
+    String? res = await Requests.post("${ClientAPI.server}/profile",
+        headers: {ClientAPI.HEADER_AUTH: authData, ClientAPI.HEADER_SESS: sess_header},
+        body: body);
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
     print(data);
     if (data == null || !data.containsKey("stats")) {

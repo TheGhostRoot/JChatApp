@@ -24,7 +24,8 @@ class ClientAPI {
   static String globalSignKey =
       "sE1MHHQ/R3LsxNeb3+Lr/xHHQAI83VvXk+YEsTqiNhsfNV7ihj+FcFvQW3pvieZtPKaMQw60vADIPEP0bM16WtycxtWTH0bevIXwWk/Kw+rCnI/mrOGKjSy9wFymceHCMwk03GNSWqBwzOLMrVCXIbFTZ8wNj1nQHHvrEU5Ihx3M=";
 
-  static String server = "http://192.168.0.215:25500/api/v1";
+  static String host = "192.168.0.215:25500";
+  static String server = "http://"+host+"/api/v1";
 
   static late Cryption cryption;
   static late JwtHandle jwt;
@@ -62,6 +63,22 @@ class ClientAPI {
 
   static String? getSessionHeader() {
     return cryption.globalEncrypt(sess_id.toString());
+  }
+
+  static Map<String, String>? updateHeaders(Map<String, String>? headers) {
+    if (headers == null) {
+      return null;
+    }
+    //headers["Content-Length"] = getContentLen(body);
+    //headers["Accept-Encoding"] = "gzip, deflate, br";
+    headers["Content-Type"] = "application/json";
+    headers["Host"] = host;
+    //headers["Accept"] = "*/*";
+    return headers;
+  }
+
+  static String getContentLen(dynamic body) {
+    return utf8.encode(body.toString()).length.toString();
   }
 
   static String? getCaptchaHeader() {

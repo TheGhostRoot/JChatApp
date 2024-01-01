@@ -1,12 +1,15 @@
 //import 'package:http_requests/http_requests.dart';
 
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+import 'package:jchatapp/main.dart';
 
 class Requests {
 
   static Future<String?> get(String url, {Map<String, String>? headers}) async {
    try {
-      return (await http.get(Uri.parse(url), headers: headers)).body;
+      return (await http.get(Uri.parse(url), headers: ClientAPI.updateHeaders(headers))).body;
 
     } catch (e) {
       return null;
@@ -22,7 +25,7 @@ class Requests {
 
   static Future<String?> post(String url, {Map<String, String>? headers, Map<String, dynamic>? body}) async {
     try {
-      return (await http.post(Uri.parse(url), headers: headers, body: body)).body;
+      return (await http.post(Uri.parse(url), headers: ClientAPI.updateHeaders(headers), body: jsonEncode(body))).body;
 
     } catch (e) {
       return null;
@@ -40,7 +43,7 @@ class Requests {
 
   static Future<String?> patch(String url, {Map<String, String>? headers, Map<String, dynamic>? body}) async {
     try {
-      return (await http.patch(Uri.parse(url), headers: headers, body: body)).body;
+      return (await http.patch(Uri.parse(url), headers: ClientAPI.updateHeaders(headers), body: jsonEncode(body))).body;
 
     } catch (e) {
       return null;
@@ -56,7 +59,7 @@ class Requests {
 
   static Future<String?> delete(String url, {Map<String, String>? headers, Map<String, dynamic>? body}) async {
    try {
-      return (await http.delete(Uri.parse(url), headers: headers, body: body)).body;
+      return (await http.delete(Uri.parse(url), headers: ClientAPI.updateHeaders(headers), body: jsonEncode(body))).body;
 
     } catch (e) {
       return null;
