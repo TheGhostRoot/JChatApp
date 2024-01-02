@@ -1,11 +1,34 @@
 //import 'package:http_requests/http_requests.dart';
 
 import 'dart:convert';
-
+import 'package:path/path.dart';
+import 'package:async/async.dart';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:jchatapp/main.dart';
 
 class Requests {
+
+  static Future<String?> uploadFile(String url, String method, File file) async {
+    try {
+      var request = http.MultipartRequest(method, Uri.parse(url));
+      request.files.add(http.MultipartFile('file',
+          http.ByteStream(DelegatingStream(file.openRead())), file.lengthSync(),
+          filename: basename(file.path)));
+
+      var response = await request.send();
+      String? res;
+      response.stream.transform(utf8.decoder).listen((value) {
+        res = value;
+      });
+
+      return res;
+
+    } catch (e) {
+      return null;
+    }
+  }
+
 
   static Future<String?> get(String url, {Map<String, String>? headers}) async {
    try {

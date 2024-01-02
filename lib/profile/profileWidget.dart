@@ -32,7 +32,10 @@ class ProfileHome extends State<ProfileScreen> {
   String suss = "";
 
   String tempPfpBase64 = ClientAPI.user_pfp_base64;
+  String tempPfpFilePath = "";
+
   String tempBannerBase64 = ClientAPI.user_banner_base64;
+  String tempBannerFilePath = "";
 
   late Widget pfp_widget;
   late Widget banner_widget;
@@ -314,7 +317,7 @@ class ProfileHome extends State<ProfileScreen> {
 
   Future<String?> pickFile(bool isPfp) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.media);
+      FilePickerResult? result = await FilePicker.platform.pickFiles(allowedExtensions: ["mp4", "jpg"]);
 
       if (result != null) {
         // File picked successfully
@@ -335,16 +338,24 @@ class ProfileHome extends State<ProfileScreen> {
             String v = "video;${base64Encode(f.readAsBytesSync())}";
             if (isPfp) {
               tempPfpBase64 = v;
+              tempPfpFilePath = "video;${f.path}";
               setupPfpVideoWithState(f);
 
             } else {
               tempBannerBase64 = v;
+              tempBannerFilePath = "video;${f.path}";
               setupBannerVideoWithState(f);
             }
 
             return v;
           }
 
+          if (isPfp) {
+            tempPfpFilePath = f.path;
+
+          } else {
+            tempBannerFilePath = f.path;
+          }
           return base64Encode(f.readAsBytesSync());
         }
         return null;
@@ -595,12 +606,12 @@ class ProfileHome extends State<ProfileScreen> {
                 changes["about_me"] = aboutMeController.text;
               }
 
-              if (tempPfpBase64 != ClientAPI.user_pfp_base64) {
-                changes["pfp"] = tempPfpBase64;
+              if (tempPfpBase64 != ClientAPI.user_pfp_base64 && tempPfpFilePath.isNotEmpty) {
+                changes["pfp"] = tempPfpFilePath;
               }
 
-              if (tempBannerBase64 != ClientAPI.user_banner_base64) {
-                changes["banner"] = tempBannerBase64;
+              if (tempBannerBase64 != ClientAPI.user_banner_base64 && tempBannerFilePath.isNotEmpty) {
+                changes["banner"] = tempBannerFilePath;
               }
 
               if (changes.isNotEmpty) {

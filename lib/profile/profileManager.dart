@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/requestHandler.dart';
 
@@ -67,11 +70,7 @@ class ProfileManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
-      return false;
-    }
-
+    /*
     Map<String, dynamic> body = {"id": ClientAPI.user_id};
 
     if (changes.containsKey("pfp")) {
@@ -82,16 +81,43 @@ class ProfileManager {
     if (changes.containsKey("banner")) {
       body["banner"] = changes["banner"];
       changes["banner"] = true;
+    }*/
+
+
+    String? path;
+    bool isVideo = false;
+    bool isPfp = false;
+    if (changes.containsKey("banner")) {
+      String banner = changes["banner"] as String;
+      if (banner.startsWith("video;")) {
+        path = banner.substring(6);
+        isVideo = true;
+
+      } else {
+        path = banner;
+      }
+
+    } else if (changes.containsKey("pfp")) {
+      String pfp = changes["pfp"] as String;
+      isPfp = true;
+      if (pfp.startsWith("video;")) {
+        path = pfp.substring(6);
+        isVideo = true;
+
+      } else {
+        path = pfp;
+      }
     }
 
-    String? authData = ClientAPI.jwt.generateUserJwt(changes);
-    if (authData == null) {
-      return false;
-    }
-
+    /*
     String? res = await Requests.post("${ClientAPI.server}/profile",
         headers: {ClientAPI.HEADER_AUTH: authData, ClientAPI.HEADER_SESS: sess_header},
-        body: body);
+        body: body); */
+
+    if (path == null) {
+      return false;
+    }
+    String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
     print(data);
     if (data == null || !data.containsKey("stats")) {
