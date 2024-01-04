@@ -54,17 +54,19 @@ class ProfileHome extends State<ProfileScreen> {
   var aboutMeController = TextEditingController();
 
   Map<String, String>? getHeaders() {
-    String? sess = ClientAPI.getSessionHeader();
+    /*String? sess = ClientAPI.getSessionHeader();
     if (sess == null) {
       return null;
     }
 
-    String? authHeader = ClientAPI.jwt.generateUserJwt({"id": ClientAPI.user_id});
+     */
+
+    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": ClientAPI.user_id}, true);
     if (authHeader == null) {
       return null;
     }
 
-    return {ClientAPI.HEADER_SESS: sess, ClientAPI.HEADER_AUTH: authHeader};
+    return {ClientAPI.HEADER_AUTH: authHeader, "Host": ClientAPI.host, "Accept": "*/*"};
   }
 
   void setupPfpVideo(File? file) {
@@ -74,13 +76,10 @@ class ProfileHome extends State<ProfileScreen> {
 
       } else {
         videoPlayerControllerPfp = VideoPlayerController.networkUrl(
-            Uri.http("192.168.0.215:25500", "/api/v1/profile/avatar"),
+            Uri.parse("${ClientAPI.server}/profile/avatar?redirected=false&type=''"),
             httpHeaders: getHeaders() ?? {});
       }
 
-      videoPlayerControllerPfp!.addListener(() {
-        setState(() {});
-      });
       videoPlayerControllerPfp!.setLooping(true);
       videoPlayerControllerPfp!.setVolume(0);
       videoPlayerControllerPfp!.initialize().then((_) => setState(() {}));
@@ -111,12 +110,15 @@ class ProfileHome extends State<ProfileScreen> {
 
         } else {
           videoPlayerControllerPfp = VideoPlayerController.networkUrl(
-              Uri.http("192.168.0.215:25500", "/api/v1/profile/avatar"),
+              Uri.parse("${ClientAPI.server}/profile/avatar?redirected=false&type=''"),
               httpHeaders: getHeaders() ?? {});
         }
+        /*
         videoPlayerControllerPfp!.addListener(() {
           setState(() {});
         });
+
+         */
         videoPlayerControllerPfp!.setLooping(true);
         videoPlayerControllerPfp!.setVolume(0);
         videoPlayerControllerPfp!.initialize().then((_) => setState(() {}));
@@ -147,13 +149,10 @@ class ProfileHome extends State<ProfileScreen> {
 
       } else {
         videoPlayerControllerBanner = VideoPlayerController.networkUrl(
-            Uri.http("192.168.0.215:25500", "/api/v1/profile/banner"),
+            Uri.parse("${ClientAPI.server}/profile/banner?redirected=false&type=''"),
             httpHeaders: getHeaders() ?? {});
       }
 
-      videoPlayerControllerBanner!.addListener(() {
-        setState(() {});
-      });
       videoPlayerControllerBanner!.setLooping(true);
       videoPlayerControllerBanner!.setVolume(0);
       videoPlayerControllerBanner!.initialize().then((_) => setState(() {}));
@@ -190,14 +189,10 @@ class ProfileHome extends State<ProfileScreen> {
 
         } else {
           videoPlayerControllerBanner = VideoPlayerController.networkUrl(
-              Uri.http("192.168.0.215:25500", "/api/v1/profile/banner"),
+              Uri.parse("${ClientAPI.server}/profile/banner?redirected=false&type=''"),
               httpHeaders: getHeaders() ?? {});
         }
 
-
-        videoPlayerControllerBanner!.addListener(() {
-          setState(() {});
-        });
         videoPlayerControllerBanner!.setLooping(true);
         videoPlayerControllerBanner!.setVolume(0);
         videoPlayerControllerBanner!.initialize().then((_) => setState(() {}));
@@ -231,11 +226,11 @@ class ProfileHome extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    if (tempPfpBase64.startsWith("video;")) {
+    if (clientConfig.config["pfp-is-video"]) {
       setupPfpVideo(null);
     }
 
-    if (tempBannerBase64.startsWith("video;")) {
+    if (clientConfig.config["banner-is-video"]) {
       setupBannerVideo(null);
     }
   }
@@ -252,27 +247,32 @@ class ProfileHome extends State<ProfileScreen> {
     statsController.text = ClientAPI.user_stats.substring(1);
     aboutMeController.text = ClientAPI.user_about_me;
 
-    if (tempPfpBase64.startsWith("video;")) {
+    Map<String, String> h = getHeaders() ?? {};
+    print(h);
+
+    if (clientConfig.config["pfp-is-video"]) {
       setupPfpVideo(null);
 
     } else {
       pfp_widget = CircleAvatar(
         radius: 50.0,
-        backgroundImage: Image.memory(base64Decode(tempPfpBase64)).image,
+        backgroundImage: Image.network("${ClientAPI.server}/profile/avatar?redirected=false&type=''", headers: h).image,
       );
     }
 
-    if (tempBannerBase64.startsWith("video;")) {
+    if (clientConfig.config["banner-is-video"]) {
+      print("Video");
       setupBannerVideo(null);
 
     } else {
+      print("Image");
       banner_widget = Container(decoration: BoxDecoration(
           borderRadius: const BorderRadius.vertical(
             bottom: Radius.circular(20.0),
             top: Radius.circular(20.0),
           ),
           image: DecorationImage(
-              image: Image.memory(base64Decode(tempBannerBase64)).image,
+              image: Image.network("${ClientAPI.server}/profile/banner?redirected=false&type=''", headers: h).image,
               fit: BoxFit.fill)));
     }
 
@@ -329,33 +329,39 @@ class ProfileHome extends State<ProfileScreen> {
             return null;
           }
 
-          if (f.path.endsWith("mp4") || f.path.endsWith("gif") ||
-              f.path.endsWith("avi") || f.path.endsWith("flv") ||
-              f.path.endsWith("mkv") || f.path.endsWith("mov") ||
-              f.path.endsWith("mpeg") || f.path.endsWith("webm") || f.path.endsWith("wmv")) {
+          if (f.path.endsWith("mp4")) {
             // it's video
 
             String v = "video;${base64Encode(f.readAsBytesSync())}";
             if (isPfp) {
               tempPfpBase64 = v;
               tempPfpFilePath = "video;${f.path}";
+              clientConfig.config["pfp-is-video"] = true;
               setupPfpVideoWithState(f);
 
             } else {
               tempBannerBase64 = v;
               tempBannerFilePath = "video;${f.path}";
+              clientConfig.config["banner-is-video"] = true;
               setupBannerVideoWithState(f);
             }
+
+            clientConfig.updateConfig(clientConfig.config);
 
             return v;
           }
 
           if (isPfp) {
             tempPfpFilePath = f.path;
+            clientConfig.config["pfp-is-video"] = false;
 
           } else {
             tempBannerFilePath = f.path;
+            clientConfig.config["banner-is-video"] = false;
           }
+
+          clientConfig.updateConfig(clientConfig.config);
+
           return base64Encode(f.readAsBytesSync());
         }
         return null;

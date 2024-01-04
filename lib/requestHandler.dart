@@ -25,6 +25,7 @@ class Requests {
       return res;
 
     } catch (e) {
+      print(e);
       return null;
     }
   }

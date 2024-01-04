@@ -96,6 +96,9 @@ class ClientConfig {
     conf["remember_me"]["pfp"] = null;
     conf["remember_me"]["id"] = 0;
 
+    conf["pfp-is-video"] = false;
+    conf["banner-is-video"] = false;
+
     return conf;
   }
 
@@ -154,7 +157,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // "C:\\JChat"
   await ClientAPI.SetUp();
-  ClientConfig clientConfig = ClientConfig(null);
+  ClientConfig clientConfig = ClientConfig("C:\\JChat");
   /*
   * By default you would have to integrate your background service on a platform specific way.
 

@@ -39,26 +39,11 @@ class ProfileManager {
 
     ClientAPI.user_about_me = aboutMe.isEmpty ? "I am new here. Say hello :)" : aboutMe;
     ClientAPI.user_stats = data["stats"] as String;
-    String pfp = data["pfp"] as String;
-    String banner = data["banner"] as String;
-
-    if (pfp.isNotEmpty) {
-      // pfp will be empty if there is no profile pic
-      // pfp won't be empty if user sets a picture
-      ClientAPI.user_pfp_base64 = pfp;
-    }
-
-    if (banner.isNotEmpty) {
-      // banner will be empty if there is no profile banner
-      // banner won't be empty if user sets a banner
-      ClientAPI.user_banner_base64 = banner;
-    }
 
     if ((data["badges"] as String).isNotEmpty) {
       // badges will be empty if there is no profile badges
       // badges won't be empty if user sets a badges
-      ClientAPI.user_badges =
-          ClientAPI.jwt.getDataNoEncryption((data["badges"] as String)) ?? {};
+      ClientAPI.user_badges = ClientAPI.jwt.getDataNoEncryption((data["badges"] as String)) ?? {};
     }
 
     return ClientAPI.jwt.getData(res);
@@ -119,7 +104,6 @@ class ProfileManager {
     }
     String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
-    print(data);
     if (data == null || !data.containsKey("stats")) {
       return false;
     }
