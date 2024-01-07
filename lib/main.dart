@@ -30,6 +30,12 @@ class ClientAPI {
   static late Cryption cryption;
   static late JwtHandle jwt;
 
+  static late String user_banner_base64;
+  static late String user_pfp_base64;
+
+  static String bannerUrl = "${ClientAPI.server}/profile/banner?redirected=false&type=";
+  static String pfpUrl = "${ClientAPI.server}/profile/avatar?redirected=false&type=";
+
   static String USER_SIGN_KEY = "";
   static String USER_ENCRYP_KEY = "";
   static String HEADER_AUTH = "Authorization";
@@ -39,8 +45,6 @@ class ClientAPI {
   static int captcha_id = 0;
   static int captcha_time = 20;
   static int user_id = 0;
-  static late String user_pfp_base64;
-  static late String user_banner_base64;
   static String user_name = "";
   static Map<String, Object> user_badges = {};
   static String user_about_me = "";
@@ -50,8 +54,9 @@ class ClientAPI {
   static List friends = <Friend>[];
 
   static Future<void> SetUp() async {
-    cryption = Cryption();
-    jwt = JwtHandle();
+      cryption = Cryption();
+      jwt = JwtHandle();
+
 
       ByteData pfpData = await rootBundle.load("images/pfp.png");
       ByteData bannerData = await rootBundle.load("images/black.png");
@@ -63,6 +68,22 @@ class ClientAPI {
 
   static String? getSessionHeader() {
     return cryption.globalEncrypt(sess_id.toString());
+  }
+
+  static Map<String, String>? getHeaders() {
+    /*String? sess = ClientAPI.getSessionHeader();
+    if (sess == null) {
+      return null;
+    }
+
+     */
+
+    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": ClientAPI.user_id}, true);
+    if (authHeader == null) {
+      return null;
+    }
+
+    return {ClientAPI.HEADER_AUTH: authHeader, "Host": ClientAPI.host, "Accept": "*/*"};
   }
 
   static Map<String, String>? updateHeaders(Map<String, String>? headers) {
@@ -281,11 +302,14 @@ https://pub.dev/packages/video_viewer
             data.remove("on_fail_path");
 
           } else {
-            if (!isRememberMe) {
-              ClientConfig clientConfig = (data["client_config"] as ClientConfig);
-              clientConfig.config["remember_me"]["id"] = ClientAPI.user_id;
-              clientConfig.config["remember_me"]["pfp"] = ClientAPI.user_pfp_base64;
-              clientConfig.updateConfig(clientConfig.config);
+            if (isRememberMe) {
+              Map<dynamic, dynamic>? map = await ProfileManager.getProfile(ClientAPI.user_id);
+              if (map != null) {
+                ClientConfig clientConfig = (data["client_config"] as ClientConfig);
+                clientConfig.config["remember_me"]["id"] = ClientAPI.user_id;
+                clientConfig.config["remember_me"]["pfp"] = Image.network(ClientAPI.pfpUrl, headers: ClientAPI.getHeaders() ?? {}).image;
+                clientConfig.updateConfig(clientConfig.config);
+              }
             }
 
             data.remove("captcha_stats");
@@ -407,7 +431,7 @@ https://pub.dev/packages/video_viewer
                                         child: Center(
                                           child: CircleAvatar(
                                             radius: 50.0,
-                                            backgroundImage: Image.memory(base64Decode(clientConfig.config["remember_me"]["pfp"])).image,
+                                            backgroundImage: clientConfig.config["remember_me"]["pfp"] as ImageProvider,
                                           ),
                                         ),
                                       ),
