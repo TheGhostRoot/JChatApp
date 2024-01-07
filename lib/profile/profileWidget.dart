@@ -65,7 +65,7 @@ class ProfileHome extends State<ProfileScreen> {
 
       } else {
         videoPlayerControllerPfp = VideoPlayerController.networkUrl(
-            Uri.parse("${ClientAPI.server}/profile/avatar?redirected=false&type=''"),
+            Uri.parse(ClientAPI.pfpUrl),
             httpHeaders: ClientAPI.getHeaders() ?? {});
       }
 
@@ -99,7 +99,7 @@ class ProfileHome extends State<ProfileScreen> {
 
         } else {
           videoPlayerControllerPfp = VideoPlayerController.networkUrl(
-              Uri.parse("${ClientAPI.server}/profile/avatar?redirected=false&type=''"),
+              Uri.parse(ClientAPI.pfpUrl),
               httpHeaders: ClientAPI.getHeaders() ?? {});
         }
         /*
@@ -138,7 +138,7 @@ class ProfileHome extends State<ProfileScreen> {
 
       } else {
         videoPlayerControllerBanner = VideoPlayerController.networkUrl(
-            Uri.parse("${ClientAPI.server}/profile/banner?redirected=false&type=''"),
+            Uri.parse(ClientAPI.bannerUrl),
             httpHeaders: ClientAPI.getHeaders() ?? {});
       }
 
@@ -171,22 +171,24 @@ class ProfileHome extends State<ProfileScreen> {
 
   void setupBannerVideoWithState(File? file) {
     setState(() {
-
       if (videoPlayerControllerBanner == null) {
         if (file != null) {
           videoPlayerControllerBanner = VideoPlayerController.file(file);
 
         } else {
           videoPlayerControllerBanner = VideoPlayerController.networkUrl(
-              Uri.parse("${ClientAPI.server}/profile/banner?redirected=false&type=''"),
+              Uri.parse(ClientAPI.bannerUrl),
               httpHeaders: ClientAPI.getHeaders() ?? {});
         }
-
-        videoPlayerControllerBanner!.setLooping(true);
-        videoPlayerControllerBanner!.setVolume(0);
-        videoPlayerControllerBanner!.initialize().then((_) => setState(() {}));
-        videoPlayerControllerBanner!.play();
       }
+      videoPlayerControllerBanner!.addListener(() {
+        setState(() {});
+      });
+
+      videoPlayerControllerBanner!.setLooping(true);
+      videoPlayerControllerBanner!.setVolume(0);
+      videoPlayerControllerBanner!.initialize();
+      videoPlayerControllerBanner!.play();
 
       /*
       banner_widget = AspectRatio(
@@ -199,8 +201,8 @@ class ProfileHome extends State<ProfileScreen> {
         ),
       );
 
-       */
 
+*/
       banner_widget = Container(decoration: const BoxDecoration(
           color: Color.fromRGBO(70, 70, 70, 1),
           borderRadius: BorderRadius.vertical(
@@ -209,6 +211,8 @@ class ProfileHome extends State<ProfileScreen> {
           )), child: VideoPlayer(videoPlayerControllerBanner!));
     });
 
+
+
   }
 
 
@@ -216,12 +220,15 @@ class ProfileHome extends State<ProfileScreen> {
     Map<String, String> h = ClientAPI.getHeaders() ?? {};
     print(h);
 
-    if (clientConfig.config["pfp-is-video"]) {
+    String? resAvatar = await Requests.get(ClientAPI.pfpUrl, headers: h);
+    String? resBanner = await Requests.get(ClientAPI.bannerUrl, headers: h);
+
+    if (resAvatar != null && clientConfig.config["pfp-is-video"]) {
       setupPfpVideoWithState(null);
 
     } else {
-      setState(() async {
-        tempPfpBase64 = await Requests.get(ClientAPI.pfpUrl, headers: h) ?? ClientAPI.user_pfp_base64;
+      setState(() {
+        tempPfpBase64 = resAvatar ?? ClientAPI.user_pfp_base64;
         pfp_widget = CircleAvatar(
           radius: 50.0,
           backgroundImage: Image.memory(base64Decode(tempPfpBase64)).image,
@@ -229,12 +236,12 @@ class ProfileHome extends State<ProfileScreen> {
       });
     }
 
-    if (clientConfig.config["banner-is-video"]) {
+    if (resBanner != null && clientConfig.config["banner-is-video"]) {
       setupBannerVideoWithState(null);
 
     } else {
-      setState(() async {
-        tempBannerBase64 = await Requests.get(ClientAPI.bannerUrl, headers: h) ?? ClientAPI.user_banner_base64;
+      setState(() {
+        tempBannerBase64 = resBanner ?? ClientAPI.user_banner_base64;
         banner_widget = Container(decoration: BoxDecoration(
             borderRadius: const BorderRadius.vertical(
               bottom: Radius.circular(20.0),
