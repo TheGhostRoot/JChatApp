@@ -72,6 +72,9 @@ class ProfileManager {
     String? path;
     bool isVideo = false;
     bool isPfp = false;
+
+    bool stats = false;
+
     if (changes.containsKey("banner")) {
       String banner = changes["banner"] as String;
       if (banner.startsWith("video;")) {
@@ -82,7 +85,17 @@ class ProfileManager {
         path = banner;
       }
 
-    } else if (changes.containsKey("pfp")) {
+      String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
+      Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+      if (data == null || !data.containsKey("stats")) {
+        return false;
+      }
+
+      stats = data["stats"];
+      changes.remove("banner");
+    }
+
+    if (changes.containsKey("pfp")) {
       String pfp = changes["pfp"] as String;
       isPfp = true;
       if (pfp.startsWith("video;")) {
@@ -92,23 +105,39 @@ class ProfileManager {
       } else {
         path = pfp;
       }
+
+      String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
+      Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+      if (data == null || !data.containsKey("stats")) {
+        return false;
+      }
+
+      stats = data["stats"];
+      changes.remove("pfp");
     }
 
-    /*
-    String? res = await Requests.post("${ClientAPI.server}/profile",
-        headers: {ClientAPI.HEADER_AUTH: authData, ClientAPI.HEADER_SESS: sess_header},
-        body: body); */
+    if (changes.isNotEmpty) {
+      String? authData = ClientAPI.jwt.generateUserJwt(changes);
+      if (authData == null) {
+        return stats;
+      }
 
-    if (path == null) {
-      return false;
-    }
-    String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
-    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
-    if (data == null || !data.containsKey("stats")) {
-      return false;
+      String? res2 = await Requests.patch("${ClientAPI.server}/profile",
+          headers: {
+            ClientAPI.HEADER_AUTH: authData,
+            ClientAPI.HEADER_SESS: ClientAPI.getSessionHeader() ?? 'a'
+          });
+
+      Map<dynamic, dynamic>? d = ClientAPI.jwt.getData(res2);
+      if (d == null || !d.containsKey("stats")) {
+        return false;
+      }
+
+      return stats || d["stats"];
     }
 
-    return data["stats"];
+    return false;
+
   }
 
 

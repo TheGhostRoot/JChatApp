@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import 'package:jchatapp/hoverTextWidget.dart';
@@ -266,17 +266,17 @@ class ProfileHome extends State<ProfileScreen> {
     nameController.text = ClientAPI.user_name;
     statsController.text = ClientAPI.user_stats.substring(1);
     aboutMeController.text = ClientAPI.user_about_me;
-    banner_widget = Container(decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(20.0),
-          top: Radius.circular(20.0),
-        ),
-        image: DecorationImage(
-            image: Image.memory(base64Decode(ClientAPI.user_banner_base64)).image,
-            fit: BoxFit.fill)));
-    pfp_widget = CircleAvatar(
-      radius: 50.0,
-      backgroundImage: Image.memory(base64Decode(ClientAPI.user_pfp_base64)).image,
+    banner_widget =  Center(
+      child: LoadingAnimationWidget.prograssiveDots(
+        color: Colors.white,
+        size: 200,
+      ),
+    );
+    pfp_widget = Center(
+      child: LoadingAnimationWidget.prograssiveDots(
+        color: Colors.white,
+        size: 100,
+      ),
     );
 
     Future.delayed(const Duration(seconds: 1), () async {
