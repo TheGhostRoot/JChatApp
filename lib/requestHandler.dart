@@ -25,7 +25,6 @@ class Requests {
       return res;
 
     } catch (e) {
-      print(e);
       return null;
     }
   }
@@ -33,7 +32,7 @@ class Requests {
 
   static Future<String?> get(String url, {Map<String, String>? headers}) async {
    try {
-      return (await http.get(Uri.parse(url), headers: ClientAPI.updateHeaders(headers))).body;
+      return (await http.get(Uri.parse(url), headers: ClientAPI.updateHeadersForBody(headers))).body;
 
     } catch (e) {
       return null;
@@ -49,7 +48,7 @@ class Requests {
 
   static Future<String?> post(String url, {Map<String, String>? headers, Map<String, dynamic>? body}) async {
     try {
-      return (await http.post(Uri.parse(url), headers: ClientAPI.updateHeaders(headers), body: jsonEncode(body))).body;
+      return (await http.post(Uri.parse(url), headers: ClientAPI.updateHeadersForBody(headers), body: jsonEncode(body))).body;
 
     } catch (e) {
       return null;
@@ -67,7 +66,7 @@ class Requests {
 
   static Future<String?> patch(String url, {Map<String, String>? headers, Map<String, dynamic>? body}) async {
     try {
-      return (await http.patch(Uri.parse(url), headers: ClientAPI.updateHeaders(headers), body: jsonEncode(body))).body;
+      return (await http.patch(Uri.parse(url), headers: ClientAPI.updateHeadersForBody(headers), body: jsonEncode(body))).body;
 
     } catch (e) {
       return null;
@@ -83,7 +82,8 @@ class Requests {
 
   static Future<String?> delete(String url, {Map<String, String>? headers, Map<String, dynamic>? body}) async {
    try {
-      return (await http.delete(Uri.parse(url), headers: ClientAPI.updateHeaders(headers), body: jsonEncode(body))).body;
+      return (await http.delete(Uri.parse(url),
+          headers: ClientAPI.updateHeadersForBody(headers), body: jsonEncode(body))).body;
 
     } catch (e) {
       return null;
@@ -95,6 +95,30 @@ class Requests {
     } catch (e) {
       return null;
     }*/
+  }
+
+
+  static Future<String?> getProfileAvatarBase64Image({Map<String, String>? headers}) async {
+    try {
+      return (await http.get(Uri.parse(ClientAPI.pfpUrl),
+          headers: ClientAPI.updateHeadersForBody(headers))).body;
+
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+  static Future<String?> getProfileBannerBase64Image({Map<String, String>? headers}) async {
+    try {
+
+      return (await http.get(Uri.parse(ClientAPI.bannerUrl),
+          headers: ClientAPI.updateHeadersForBody(headers))).body;
+
+    } catch (e) {
+      print(e);
+      return null;
+    }
   }
 
 }

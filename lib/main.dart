@@ -19,6 +19,19 @@ import 'package:video_player_media_kit/video_player_media_kit.dart';
 
 // import 'package:yaml/yaml.dart';
 
+// android:usesCleartextTraffic="true"  -> AndroidMainfest.xml
+// <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+/*
+  <manifest>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <application android:usesCleartextTraffic="true"></aplication>
+</manifest>
+
+https://pub.dev/packages/video_player
+https://pub.dev/packages/video_viewer
+   */
+
 class ClientAPI {
   static String globalEncryptionKey = "P918nfQtYhbUzJVbmSQfZw==";
   static String globalSignKey =
@@ -48,7 +61,7 @@ class ClientAPI {
   static String user_name = "";
   static Map<String, Object> user_badges = {};
   static String user_about_me = "";
-  static String user_stats = "";
+  static String user_stats = "0";
   static int sess_id = 0;
 
   static List friends = <Friend>[];
@@ -57,9 +70,8 @@ class ClientAPI {
       cryption = Cryption();
       jwt = JwtHandle();
 
-
-      ByteData pfpData = await rootBundle.load("images/pfp.png");
-      ByteData bannerData = await rootBundle.load("images/black.png");
+      ByteData pfpData = await rootBundle.load(ClientConfig.default_avatar);
+      ByteData bannerData = await rootBundle.load(ClientConfig.black_box);
       List<int> pfpBytes = img.encodePng(img.decodeImage(Uint8List.fromList(pfpData.buffer.asUint8List()))!);
       List<int> bannerBytes = img.encodePng(img.decodeImage(Uint8List.fromList(bannerData.buffer.asUint8List()))!);
       user_pfp_base64 = base64Encode(Uint8List.fromList(pfpBytes));
@@ -70,14 +82,7 @@ class ClientAPI {
     return cryption.globalEncrypt(sess_id.toString());
   }
 
-  static Map<String, String>? getHeaders() {
-    /*String? sess = ClientAPI.getSessionHeader();
-    if (sess == null) {
-      return null;
-    }
-
-     */
-
+  static Map<String, String>? getProfileHeaders() {
     String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": ClientAPI.user_id}, true);
     if (authHeader == null) {
       return null;
@@ -86,7 +91,7 @@ class ClientAPI {
     return {ClientAPI.HEADER_AUTH: authHeader, "Host": ClientAPI.host, "Accept": "*/*"};
   }
 
-  static Map<String, String>? updateHeaders(Map<String, String>? headers) {
+  static Map<String, String>? updateHeadersForBody(Map<String, String>? headers) {
     if (headers == null) {
       return null;
     }
@@ -111,6 +116,14 @@ class ClientConfig {
   late Map<dynamic, dynamic> config;
   late String path;
 
+  static String logo = "images/Logo.jpg";
+  static String welcome_background = "images/welcome_background2.jpg";
+  static String black_box = "images/black.jpg";
+  static String default_avatar = "images/pfp.jpg";
+
+
+  static late String configPath;
+
   Map<dynamic, dynamic> getDefaultConfig() {
     Map<dynamic, dynamic> conf = {};
     conf["remember_me"] = {};
@@ -129,8 +142,9 @@ class ClientConfig {
       return;
     }
     path = given_path;
+    configPath = "$path\\config.txt";
 
-    File newFile = File("$path\\config.txt");
+    File newFile = File(configPath);
 
     if (!newFile.existsSync()) {
       Directory(path).createSync();
@@ -146,7 +160,7 @@ class ClientConfig {
 
   bool updateConfig(Map<dynamic, dynamic> updatedConfig) {
     try {
-      File newFile = File("$path\\config.txt");
+      File newFile = File(configPath);
       if (newFile.existsSync()) {
         String? configData = ClientAPI.jwt.generateGlobalJwt(updatedConfig, true);
 
@@ -165,7 +179,7 @@ class ClientConfig {
 
   void readConfig(String path) {
     try {
-      final lines = File("$path\\config.txt").readAsLinesSync();
+      final lines = File(configPath).readAsLinesSync();
       config = lines.isNotEmpty
           ? ClientAPI.jwt.getData(lines[0], global: true) ?? getDefaultConfig()
           : getDefaultConfig();
@@ -179,48 +193,11 @@ Future<void> main() async {
   // "C:\\JChat"
   await ClientAPI.SetUp();
   ClientConfig clientConfig = ClientConfig("C:\\JChat");
-  /*
-  * By default you would have to integrate your background service on a platform specific way.
-
-But I found this package that handles the native integration mostly for you: flutter_background_service.
-
-final service = FlutterBackgroundService();
-  await service.configure(
-    androidConfiguration: AndroidConfiguration(
-      // this will executed when app is in foreground or background in separated isolate
-      onStart: onStart,
-
-      // auto start service
-      autoStart: true,
-      isForegroundMode: true,
-    ),
-    iosConfiguration: IosConfiguration(
-      // auto start service
-      autoStart: true,
-
-      // this will executed when app is in foreground in separated isolate
-      onForeground: onStart,
-
-      // you have to enable background fetch capability on xcode project
-      onBackground: onIosBackground,
-    ),
-  );
-  service.startService();
-Code snippet taken from the package example here.
-
-How to add the package to your project:
-
-Open your pubspec.yaml file
-Add flutter_background_service: ^2.4.3 to your dependency section
-Run flutter pub get
-  *
-  *
-  * */
 
   Map<dynamic, dynamic> map = {};
   map["client_config"] = clientConfig;
 
-  // TODO fix a bug on server side `captcha_time` is not updating.
+  // TODO add loading screen
 
   VideoPlayerMediaKit.ensureInitialized(
     macOS: true,
@@ -272,18 +249,6 @@ class _WelcomePage extends State<JChat> {
   late Map<dynamic, dynamic> data;
   String error = "";
   bool _passwordVisible = false;
-// android:usesCleartextTraffic="true"  -> AndroidMainfest.xml
-  // <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-
-  /*
-  <manifest>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <application android:usesCleartextTraffic="true"></aplication>
-</manifest>
-
-https://pub.dev/packages/video_player
-https://pub.dev/packages/video_viewer
-   */
 
   _WelcomePage(Map<dynamic, dynamic> given_data) {
     data = given_data;
@@ -307,7 +272,8 @@ https://pub.dev/packages/video_viewer
               if (map != null) {
                 ClientConfig clientConfig = (data["client_config"] as ClientConfig);
                 clientConfig.config["remember_me"]["id"] = ClientAPI.user_id;
-                clientConfig.config["remember_me"]["pfp"] = Image.network(ClientAPI.pfpUrl, headers: ClientAPI.getHeaders() ?? {}).image;
+                clientConfig.config["remember_me"]["pfp"] = "";
+                // TODO full this.
                 clientConfig.updateConfig(clientConfig.config);
               }
             }
@@ -318,7 +284,6 @@ https://pub.dev/packages/video_viewer
             data.remove("on_success_path");
             data.remove("on_fail_path");
 
-            await ProfileManager.getProfile(ClientAPI.user_id);
             Navigator.pushNamed(context, "/home", arguments: data);
           }
 
@@ -384,9 +349,9 @@ https://pub.dev/packages/video_viewer
           child: Container(
             width: double.infinity,
             height: MediaQuery.of(context).size.height,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("images/welcome_background2.png"),
+                image: AssetImage(ClientConfig.welcome_background),
                 fit: BoxFit.cover,
               ),
             ),
@@ -409,7 +374,7 @@ https://pub.dev/packages/video_viewer
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(top: 100.0),
-                          child: Image.asset('images/Logo.png',
+                          child: Image.asset(ClientConfig.logo,
                             width: 150.0,
                             height: 150.0,
                           ),

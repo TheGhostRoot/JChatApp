@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:jchatapp/main.dart';
@@ -55,19 +54,6 @@ class ProfileManager {
       return false;
     }
 
-    /*
-    Map<String, dynamic> body = {"id": ClientAPI.user_id};
-
-    if (changes.containsKey("pfp")) {
-      body["pfp"] = changes["pfp"];
-      changes["pfp"] = true;
-    }
-
-    if (changes.containsKey("banner")) {
-      body["banner"] = changes["banner"];
-      changes["banner"] = true;
-    }*/
-
 
     String? path;
     bool isVideo = false;
@@ -112,7 +98,7 @@ class ProfileManager {
         return false;
       }
 
-      stats = data["stats"];
+      stats = stats && data["stats"];
       changes.remove("pfp");
     }
 
@@ -133,7 +119,7 @@ class ProfileManager {
         return false;
       }
 
-      return stats || d["stats"];
+      return stats && d["stats"];
     }
 
     return false;

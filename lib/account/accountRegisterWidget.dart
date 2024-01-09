@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jchatapp/account/accountManager.dart';
+import 'package:jchatapp/main.dart';
 
 class AccountRegisterScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
@@ -85,9 +86,9 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
             child: Container(
                 width: double.infinity,
                 height: MediaQuery.of(context).size.height,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage("images/welcome_background2.png"),
+                    image: AssetImage(ClientConfig.black_box),
                     fit: BoxFit.cover,
                   ),
                 ),
