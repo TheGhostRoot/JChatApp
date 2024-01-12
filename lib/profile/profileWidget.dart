@@ -240,6 +240,12 @@ class ProfileHome extends State<ProfileScreen> {
 
     } else {
       banner_widget = getBannerImage(tempBannerBase64);
+      Future.delayed(const Duration(microseconds: 1), () async {
+        Widget? widget = await getBannerImageFromServers();
+        setState(() {
+          banner_widget = widget;
+        });
+      });
     }
 
     if (clientConfig.config["pfp-is-video"]) {
@@ -247,6 +253,12 @@ class ProfileHome extends State<ProfileScreen> {
 
     } else {
       pfp_widget = getAvatarImage(tempPfpBase64);
+      Future.delayed(const Duration(microseconds: 1), () async {
+        Widget? widget = await getAvatarImageFromServers();
+        setState(() {
+          pfp_widget = widget;
+        });
+      });
     }
   }
 
@@ -295,6 +307,22 @@ class ProfileHome extends State<ProfileScreen> {
     return allBadges;
   }
 
+  Future<Widget> getBannerImageFromServers() async {
+    String? img = await Requests.getProfileBannerBase64Image(headers: ClientAPI.getProfileHeaders());
+    if (img == null) {
+      return Container();
+    }
+    return Container(
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(20.0),
+              top: Radius.circular(20.0),
+            ),
+            image: DecorationImage(
+                image: Image.memory(base64Decode(img)).image,
+                fit: BoxFit.fill)));
+  }
+
   Widget getBannerImage(String img) {
     return Container(
         decoration: BoxDecoration(
@@ -311,6 +339,17 @@ class ProfileHome extends State<ProfileScreen> {
     return CircleAvatar(
       radius: pfpRadius,
       backgroundImage: Image.memory(base64Decode(img)).image,
+    );
+  }
+
+  Future<Widget> getAvatarImageFromServers() async {
+    String? img = await Requests.getProfileAvatarBase64Image(headers: ClientAPI.getProfileHeaders());
+    if (img == null) {
+      return Container();
+    }
+    return CircleAvatar(
+      radius: pfpRadius,
+      backgroundImage: Image.memory(base64Decode(img!)).image,
     );
   }
 
@@ -367,10 +406,12 @@ class ProfileHome extends State<ProfileScreen> {
             if (fileBase64 == tempPfpBase64 || fileBase64 == tempBannerBase64) {
               return null;
             }
+
             if (isPfp) {
               tempPfpBase64 = fileBase64;
               tempPfpFilePath = f.path;
               clientConfig.config["pfp-is-video"] = false;
+
             } else {
               tempBannerBase64 = fileBase64;
               tempBannerFilePath = f.path;

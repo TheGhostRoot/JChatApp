@@ -72,7 +72,7 @@ class ProfileManager {
       }
 
       String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
-      Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+      Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
       if (data == null || !data.containsKey("stats")) {
         return false;
       }
@@ -93,7 +93,7 @@ class ProfileManager {
       }
 
       String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
-      Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+      Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
       if (data == null || !data.containsKey("stats")) {
         return false;
       }
@@ -120,10 +120,10 @@ class ProfileManager {
       }
 
       return stats && d["stats"];
+
+    } else {
+      return stats;
     }
-
-    return false;
-
   }
 
 

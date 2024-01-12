@@ -16,13 +16,10 @@ class Requests {
           http.ByteStream(DelegatingStream(file.openRead())), file.lengthSync(),
           filename: basename(file.path)));
 
-      var response = await request.send();
-      String? res;
-      response.stream.transform(utf8.decoder).listen((value) {
-        res = value;
-      });
+      var streamResponse = await request.send();
+      var response = await http.Response.fromStream(streamResponse);
 
-      return res;
+      return response.body;
 
     } catch (e) {
       return null;
@@ -101,10 +98,10 @@ class Requests {
   static Future<String?> getProfileAvatarBase64Image({Map<String, String>? headers}) async {
     try {
       return (await http.get(Uri.parse(ClientAPI.pfpUrl),
-          headers: ClientAPI.updateHeadersForBody(headers))).body;
+          headers: headers)).body;
 
     } catch (e) {
-      print(e);
+      print("Request Error avatar: " + e.toString());
       return null;
     }
   }
@@ -113,10 +110,10 @@ class Requests {
     try {
 
       return (await http.get(Uri.parse(ClientAPI.bannerUrl),
-          headers: ClientAPI.updateHeadersForBody(headers))).body;
+          headers: headers)).body;
 
     } catch (e) {
-      print(e);
+      print("Request Error: banner: " + e.toString());
       return null;
     }
   }

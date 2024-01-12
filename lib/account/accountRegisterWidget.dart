@@ -40,7 +40,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
     data = given_data;
     if (data.containsKey("captcha_stats") && data.containsKey("name") &&
         data.containsKey("email") && data.containsKey("password") && data["captcha_stats"]) {
-      Future.delayed(const Duration(seconds: 1), () async {
+      Future.delayed(const Duration(microseconds: 1), () async {
           if (!await AccountManager.createAccount(data["name"], data["email"], data["password"])) {
             setState(() {
               error = "Can't create this account";

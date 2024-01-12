@@ -49,53 +49,38 @@ class CaptchaHome extends State<CaptchaScreen> {
 
   CaptchaHome(Map<dynamic, dynamic> given_data) {
     data = given_data;
-    vis = Visibility(
-      visible: captcha_base64 != null,
-      child: captcha_base64 != null
-          ? DecoratedBox(
+    vis = const Visibility(
+      visible: false,
+      child: SizedBox.shrink(),
+    );
+
+    Future.delayed(const Duration(microseconds: 1), () async {
+      String? captcha = await CaptchaManager.getCaptcha();
+      if (captcha == null) {
+        error = "Can't get captcha";
+        return;
+      }
+      setState(() {
+        captcha_base64 = captcha;
+        vis = Visibility(
+            visible: captcha_base64 != null,
+            child: captcha_base64 != null
+                ? DecoratedBox(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   image: MemoryImage(base64Decode(captcha_base64!)),
                 ),
               ),
             )
-          : const SizedBox.shrink(),
-    );
-    try {
-      CaptchaManager.getCaptcha().then((success) {
-        if (success == null) {
-          error = "Can't get captcha";
-        }
-        captcha_base64 = success;
-
-      }).catchError((e) {
-        error = "Can't get captcha";
-
-      }).whenComplete(() {});
-
-      Future.delayed(const Duration(seconds: 2), () async {
-        setState(() {
-          vis = Visibility(
-            visible: captcha_base64 != null,
-            child: captcha_base64 != null
-                ? DecoratedBox(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        fit: BoxFit.fill,
-                        image: MemoryImage(base64Decode(captcha_base64!)),
-                      ),
-                    ),
-                  )
                 : const SizedBox.shrink(),
-          );
-          startTimer();
-        });
+        );
+        startTimer();
       });
+    });
 
-    } catch (e) {
-      error = "Can't get captcha";
-    }
+
+
   }
 
   var captchaController = TextEditingController();
@@ -103,7 +88,9 @@ class CaptchaHome extends State<CaptchaScreen> {
   @override
   void dispose() {
     captchaController.dispose();
-    _timer?.cancel();
+    if (_timer != null) {
+      _timer!.cancel();
+    }
     super.dispose();
   }
 

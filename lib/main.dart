@@ -83,12 +83,14 @@ class ClientAPI {
   }
 
   static Map<String, String>? getProfileHeaders() {
-    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": ClientAPI.user_id}, true);
-    if (authHeader == null) {
+    String? authHeader = ClientAPI.jwt.generateUserJwt({"id": "IDK"});
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (authHeader == null || sessHeader == null) {
       return null;
     }
 
-    return {ClientAPI.HEADER_AUTH: authHeader, "Host": ClientAPI.host, "Accept": "*/*"};
+    return {ClientAPI.HEADER_AUTH: authHeader, ClientAPI.HEADER_SESS: sessHeader,
+        "Host": ClientAPI.host, "Accept": "*/*", "user_id": ClientAPI.user_id.toString()};
   }
 
   static Map<String, String>? updateHeadersForBody(Map<String, String>? headers) {
