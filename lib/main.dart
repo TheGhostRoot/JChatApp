@@ -16,6 +16,7 @@ import 'package:jchatapp/security/jwtHandler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jchatapp/captcha/captchaWidget.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // import 'package:yaml/yaml.dart';
 
@@ -192,9 +193,11 @@ class ClientConfig {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // "C:\\JChat"
   await ClientAPI.SetUp();
-  ClientConfig clientConfig = ClientConfig("C:\\JChat");
+  if (await Permission.storage.request().isDenied) {
+    return;
+  }
+  ClientConfig clientConfig = ClientConfig(Platform.isWindows || Platform.isMacOS ? "C:\\JChat" : (Platform.isLinux ? "\\home\\etc\\JChat" : "JChat"));
 
   Map<dynamic, dynamic> map = {};
   map["client_config"] = clientConfig;

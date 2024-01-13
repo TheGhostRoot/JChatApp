@@ -59,7 +59,7 @@ class ProfileManager {
     bool isVideo = false;
     bool isPfp = false;
 
-    bool stats = false;
+    bool? stats;
 
     if (changes.containsKey("banner")) {
       String banner = changes["banner"] as String;
@@ -98,14 +98,24 @@ class ProfileManager {
         return false;
       }
 
-      stats = stats && data["stats"];
+      if (stats == null) {
+        stats = data["stats"];
+
+      } else {
+        stats = stats && data["stats"];
+      }
       changes.remove("pfp");
     }
 
     if (changes.isNotEmpty) {
       String? authData = ClientAPI.jwt.generateUserJwt(changes);
       if (authData == null) {
-        return stats;
+        if (stats != null) {
+          return stats;
+
+        } else {
+          return false;
+        }
       }
 
       String? res2 = await Requests.patch("${ClientAPI.server}/profile",
@@ -119,10 +129,21 @@ class ProfileManager {
         return false;
       }
 
-      return stats && d["stats"];
+      if (stats == null) {
+        return d["stats"];
+
+      } else {
+        return stats && d["stats"];
+      }
+
 
     } else {
-      return stats;
+      if (stats != null) {
+        return stats;
+
+      } else {
+        return false;
+      }
     }
   }
 

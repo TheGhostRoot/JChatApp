@@ -11,7 +11,7 @@ import 'package:jchatapp/main.dart';
 import 'package:jchatapp/navigationWidget.dart';
 import 'package:jchatapp/profile/profileManager.dart';
 import 'package:video_player/video_player.dart';
-import 'package:video_player_media_kit/video_player_media_kit.dart';
+//import 'package:video_player_media_kit/video_player_media_kit.dart';
 
 class ProfileScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
@@ -349,7 +349,7 @@ class ProfileHome extends State<ProfileScreen> {
     }
     return CircleAvatar(
       radius: pfpRadius,
-      backgroundImage: Image.memory(base64Decode(img!)).image,
+      backgroundImage: Image.memory(base64Decode(img)).image,
     );
   }
 
@@ -647,8 +647,7 @@ class ProfileHome extends State<ProfileScreen> {
                 changes["name"] = nameController.text;
               }
 
-              if (mode + statsController.text != ClientAPI.user_stats &&
-                  statsController.text.isNotEmpty) {
+              if (mode + statsController.text != ClientAPI.user_stats) {
                 // 0 = offline
                 // 1 = online
                 // 2 = ignore
@@ -672,13 +671,9 @@ class ProfileHome extends State<ProfileScreen> {
 
               if (changes.isNotEmpty) {
                 setState(() {
-                  SaveWidget = Center(
-                    widthFactor: 180,
-                    child: LoadingAnimationWidget.prograssiveDots(
+                  SaveWidget = LoadingAnimationWidget.prograssiveDots(
                       color: Colors.white,
-                      size: 30,
-                    ),
-                  );
+                      size: 30);
                 });
                 if (await ProfileManager.updateProfile(changes)) {
                   setState(() {
@@ -733,11 +728,9 @@ class ProfileHome extends State<ProfileScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0),
               ),
+              padding: const EdgeInsets.only(left: 30, right: 30)
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: SaveWidget,
-            ),
+            child: SaveWidget
           ),
           const SizedBox(height: 30),
         ],
