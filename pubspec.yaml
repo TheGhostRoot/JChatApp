@@ -46,6 +46,7 @@ dependencies:
   video_player: ^2.8.1
   loading_animation_widget: ^1.2.0+4
   permission_handler: ^11.1.0
+  path_provider: ^2.1.2
   flutter:
     sdk: flutter
 

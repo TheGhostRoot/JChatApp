@@ -97,7 +97,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                         child: Column(children: [
                           const SizedBox(height: 30.0),
                           Container(
-                              height: 640,
+                              height: MediaQuery.of(context).size.height - 60,
                               width: 500,
                               decoration: const BoxDecoration(
                                 color: Colors.black,

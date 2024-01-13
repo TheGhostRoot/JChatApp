@@ -13,6 +13,7 @@ import 'package:jchatapp/navigationWidget.dart';
 import 'package:jchatapp/profile/profileManager.dart';
 import 'package:jchatapp/security/cryptionHandler.dart';
 import 'package:jchatapp/security/jwtHandler.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jchatapp/captcha/captchaWidget.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
@@ -26,8 +27,19 @@ import 'package:permission_handler/permission_handler.dart';
 /*
   <manifest>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
     <application android:usesCleartextTraffic="true"></aplication>
 </manifest>
+
+buildTypes {
+        release {
+            ndk {
+                abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+            }
+        }
+    }
 
 https://pub.dev/packages/video_player
 https://pub.dev/packages/video_viewer
@@ -139,26 +151,30 @@ class ClientConfig {
     return conf;
   }
 
-  ClientConfig(String? given_path) {
+  ClientConfig() {
     config = getDefaultConfig();
-    if (given_path == null) {
-      return;
-    }
-    path = given_path;
-    configPath = "$path\\config.txt";
+    Future.delayed(const Duration(microseconds: 1), () async {
+      var tempAppDocDir = await getApplicationDocumentsDirectory();
+      path = "${tempAppDocDir.path}\\JChat";
+      configPath = "$path\\config.txt";
 
-    File newFile = File(configPath);
+      File newFile = File(configPath);
 
-    if (!newFile.existsSync()) {
-      Directory(path).createSync();
-      newFile.createSync();
-      String? configData = ClientAPI.jwt.generateGlobalJwt(config, true);
-      if (configData != null) {
-        newFile.writeAsStringSync(configData);
+      if (newFile.existsSync()) {
+        newFile.deleteSync();
       }
-      return;
-    }
-    readConfig(path);
+
+      if (!newFile.existsSync()) {
+        Directory(path).createSync();
+        newFile.createSync();
+        String? configData = ClientAPI.jwt.generateGlobalJwt(config, true);
+        if (configData != null) {
+          newFile.writeAsStringSync(configData);
+        }
+        return;
+      }
+      readConfig(path);
+    });
   }
 
   bool updateConfig(Map<dynamic, dynamic> updatedConfig) {
@@ -194,10 +210,14 @@ class ClientConfig {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ClientAPI.SetUp();
-  if (await Permission.storage.request().isDenied) {
+
+  if (await Permission.manageExternalStorage.request().isDenied) {
     return;
   }
-  ClientConfig clientConfig = ClientConfig(Platform.isWindows || Platform.isMacOS ? "C:\\JChat" : (Platform.isLinux ? "\\home\\etc\\JChat" : "JChat"));
+
+  // Platform.isWindows ? "C:\\JChat" : (Platform.isLinux || Platform.isMacOS || Platform.isFuchsia ? "\\home\\etc\\JChat" : (Platform.isAndroid ? "Android\\data\\JChat" : "Documents\\JChat"))
+
+  ClientConfig clientConfig = ClientConfig();
 
   Map<dynamic, dynamic> map = {};
   map["client_config"] = clientConfig;
@@ -259,7 +279,7 @@ class _WelcomePage extends State<JChat> {
     data = given_data;
     clientConfig = data["client_config"] as ClientConfig;
     if (data.containsKey("captcha_stats") && data["captcha_stats"]) {
-      Future.delayed(const Duration(seconds: 1), () async {
+      Future.delayed(const Duration(microseconds: 1), () async {
         if (data.containsKey("email") && data.containsKey("password")) {
           if (!await AccountManager.getAccount(data["email"], data["password"], null)) {
             setState(() {

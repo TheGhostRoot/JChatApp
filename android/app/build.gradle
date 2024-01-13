@@ -23,18 +23,26 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "me.jchat.jchatapp"
+    namespace "com.example.jchatapp"
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion "25.1.8937393"
+    ndkVersion flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "me.jchat.jchatapp"
+        applicationId "com.example.jchatapp"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion flutter.minSdkVersion
@@ -51,6 +59,9 @@ android {
             ndk {
                 abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
             }
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig signingConfigs.debug
         }
     }
 }
@@ -58,3 +69,5 @@ android {
 flutter {
     source '../..'
 }
+
+dependencies {}
