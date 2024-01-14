@@ -385,7 +385,7 @@ class _WelcomePage extends State<JChat> {
                 child: Column(children: [
                   const SizedBox(height: 30.0),
                   Container(
-                    height: 810,
+                    height: Platform.isWindows || Platform.isMacOS ? 800 : 870,
                     width: 300,
                     decoration: const BoxDecoration(
                       color: Colors.black,
@@ -441,8 +441,8 @@ class _WelcomePage extends State<JChat> {
                                   border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10.0)
                                   ),
-                                  hintText: 'Email',
-                                  labelText: "Email",
+                                  hintText: "Email",
+                                  labelText: MediaQuery.of(context).size.height.toString(),
                                   hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
 
                             ),

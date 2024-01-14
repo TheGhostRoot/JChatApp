@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:jchatapp/account/accountManager.dart';
 import 'package:jchatapp/main.dart';
@@ -35,9 +38,12 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
   String suss = "";
 
   bool _passwordVisible = false;
+  //late Size view;
+  late double bigBlack;
 
   AccountRegisterHome(Map<dynamic, dynamic> given_data) {
     data = given_data;
+    //view = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize;
     if (data.containsKey("captcha_stats") && data.containsKey("name") &&
         data.containsKey("email") && data.containsKey("password") && data["captcha_stats"]) {
       Future.delayed(const Duration(microseconds: 1), () async {
@@ -80,12 +86,28 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var h = MediaQuery.of(context).size.height;
+    // 640    my phone 710     867  my phone 825  small phone 616              height - 250
+    if (Platform.isAndroid || Platform.isIOS) {
+      if (h < 860) {
+        if (h < 800) {
+          bigBlack = h;
+
+        } else {
+          bigBlack = h - 120;
+        }
+      } else {
+        bigBlack = h - 250;
+      }
+    } else {
+      bigBlack = h - 60;
+    }
     return Scaffold(
         backgroundColor: const Color.fromRGBO(54, 54, 54, 100),
         body: SingleChildScrollView(
             child: Container(
-                width: double.infinity,
                 height: MediaQuery.of(context).size.height,
+                width: double.infinity,
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage(ClientConfig.welcome_background),
@@ -97,8 +119,8 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                         child: Column(children: [
                           const SizedBox(height: 30.0),
                           Container(
-                              height: MediaQuery.of(context).size.height - 60,
-                              width: 500,
+                              height: bigBlack,
+                              width: Platform.isAndroid || Platform.isIOS ? 300 : 500,
                               decoration: const BoxDecoration(
                                 color: Colors.black,
                                 borderRadius: BorderRadius.vertical(
@@ -108,11 +130,11 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                               ),
                               child: Column(children: [
                             const SizedBox(height: 30.0),
-                            const Text("Create an account",
+                                Text("Create an account",
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 50)),
+                                    fontSize: Platform.isAndroid || Platform.isIOS ? 20 : 40)),
                             const SizedBox(height: 20.0),
                             Text(error, style: const TextStyle(color: Colors.red)),
                                 Text(suss, style: const TextStyle(color: Colors.green)),
