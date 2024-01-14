@@ -90,7 +90,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
     // 640    my phone 710     867  my phone 825  small phone 616              height - 250
     if (Platform.isAndroid || Platform.isIOS) {
       if (h < 860) {
-        if (h < 800) {
+        if (h < 801) {
           bigBlack = h;
 
         } else {

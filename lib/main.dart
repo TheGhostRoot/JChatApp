@@ -442,7 +442,7 @@ class _WelcomePage extends State<JChat> {
                                       borderRadius: BorderRadius.circular(10.0)
                                   ),
                                   hintText: "Email",
-                                  labelText: MediaQuery.of(context).size.height.toString(),
+                                  labelText: "Email",
                                   hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
 
                             ),
