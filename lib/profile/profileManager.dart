@@ -6,30 +6,23 @@ import 'package:jchatapp/requestHandler.dart';
 class ProfileManager {
 
   static Future<Map<dynamic, dynamic>?> getProfile(int? user_id) async {
-    if (user_id == null || ClientAPI.user_id == 0) {
-      return null;
-    }
-
-
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    if (user_id == null) {
       return null;
     }
 
     Map<dynamic, dynamic> claims = {};
     claims["id"] = user_id;
 
-    String? jwtToken = ClientAPI.jwt.generateUserJwt(claims);
+    String? jwtToken = ClientAPI.jwt.generateGlobalJwt(claims, true);
     if (jwtToken == null) {
       return null;
     }
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = jwtToken;
-    header[ClientAPI.HEADER_SESS] = sess_header;
 
     String? res = await Requests.get("${ClientAPI.server}/profile", headers: header);
-    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
     if (data == null) {
       return null;
     }
@@ -45,7 +38,7 @@ class ProfileManager {
       ClientAPI.user_badges = ClientAPI.jwt.getDataNoEncryption((data["badges"] as String)) ?? {};
     }
 
-    return ClientAPI.jwt.getData(res);
+    return data;
   }
 
 

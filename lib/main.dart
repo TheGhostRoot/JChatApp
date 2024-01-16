@@ -103,14 +103,25 @@ class ClientAPI {
   }
 
   static Map<String, String>? getProfileHeaders() {
-    String? authHeader = ClientAPI.jwt.generateUserJwt({"id": "IDK"});
-    String? sessHeader = ClientAPI.getSessionHeader();
-    if (authHeader == null || sessHeader == null) {
+    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": ClientAPI.user_id}, true);
+    //String? sessHeader = ClientAPI.getSessionHeader();
+    if (authHeader == null) {
       return null;
     }
 
-    return {ClientAPI.HEADER_AUTH: authHeader, ClientAPI.HEADER_SESS: sessHeader,
-        "Host": ClientAPI.host, "Accept": "*/*", "user_id": ClientAPI.user_id.toString()};
+    return {ClientAPI.HEADER_AUTH: authHeader,
+        "Host": ClientAPI.host, "Accept": "*/*"};
+  }
+
+  static Map<String, String>? getProfileHeadersWithRememberMe(int remember_me) {
+    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": remember_me}, true);
+    //String? sessHeader = ClientAPI.getSessionHeader();
+    if (authHeader == null) {
+      return null;
+    }
+
+    return {ClientAPI.HEADER_AUTH: authHeader,
+      "Host": ClientAPI.host, "Accept": "*/*"};
   }
 
   static Map<String, String>? updateHeadersForBody(Map<String, String>? headers) {
@@ -168,12 +179,10 @@ class ClientConfig {
       File newFile = File(configPath);
       print(configPath);
 
-      /*
-      if (newFile.existsSync()) {
-        newFile.deleteSync();
-      }
 
-       */
+      /*if (newFile.existsSync()) {
+        newFile.deleteSync();
+      }*/
 
       if (!newFile.existsSync()) {
         Directory(path).createSync();
@@ -275,22 +284,18 @@ class _WelcomePage extends State<JChat> {
   bool isRememberMe = false;
 
 
-  void setupPfpVideoWithState(double pfpRadius) {
-    setState(() {
-        if (videoPlayerControllerPfp == null) {
-            videoPlayerControllerPfp = VideoPlayerController.networkUrl(
+  void setupPfpVideo(double pfpRadius, int id) {
+    VideoPlayerController videoPlayerControllerPfp = VideoPlayerController.networkUrl(
                 Uri.parse(ClientAPI.pfpUrl),
-                httpHeaders: ClientAPI.getProfileHeaders() ?? {});
-        }
-        videoPlayerControllerPfp!.setLooping(true);
-        videoPlayerControllerPfp!.setVolume(0);
-        videoPlayerControllerPfp!.initialize().then((_) => setState(() {}));
-        videoPlayerControllerPfp!.play();
+                httpHeaders: ClientAPI.getProfileHeadersWithRememberMe(id) ?? {});
+        videoPlayerControllerPfp.setLooping(true);
+        videoPlayerControllerPfp.setVolume(0);
+        videoPlayerControllerPfp.initialize().then((_) => setState(() => {}));
+        videoPlayerControllerPfp.play();
 
 
         pfp_widget = CircleAvatar(
-            radius: pfpRadius, child: VideoPlayer(videoPlayerControllerPfp!));
-    });
+            radius: pfpRadius, child: VideoPlayer(videoPlayerControllerPfp));
   }
 
   @override
@@ -305,20 +310,46 @@ class _WelcomePage extends State<JChat> {
   String error = "";
   bool _passwordVisible = false;
 
-  VideoPlayerController? videoPlayerControllerPfp;
   Widget? pfp_widget;
+  String? pfp_base64_remember_me;
+
 
   _WelcomePage(Map<dynamic, dynamic> given_data) {
     data = given_data;
     clientConfig = data["client_config"] as ClientConfig;
-    pfp_widget = Container();
-    if (clientConfig.config["remember_me"]["pfp"] != null &&
-        (clientConfig.config["remember_me"]["pfp"] as String).startsWith("video;")) {
-      setupPfpVideoWithState(70);
+    Future.delayed(const Duration(microseconds: 1), () async {
+      if (clientConfig.config["remember_me"]["pfp"] != null) {
+        Map<dynamic, dynamic>? map = await ProfileManager.getProfile(clientConfig.config["remember_me"]["id"]);
+        if (map != null && (map["pfp"] as String).startsWith("video;")) {
+          setupPfpVideo(70, clientConfig.config["remember_me"]["id"]);
+          print("setting up pfp video");
 
-    }
-    if (data.containsKey("captcha_stats") && data["captcha_stats"]) {
-      Future.delayed(const Duration(microseconds: 1), () async {
+        } else {
+          pfp_base64_remember_me = await Requests.getProfileAvatarBase64Image(
+              headers: ClientAPI.getProfileHeadersWithRememberMe(
+                  clientConfig.config["remember_me"]["id"]));
+          pfp_base64_remember_me ??= await ClientAPI.getDefaultPfp();
+          setState(() {
+            pfp_widget = Container(
+              width: 100.0,
+              height: 100.0,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.cyan,
+              ),
+              child: Center(
+                child: CircleAvatar(
+                  radius: 50.0,
+                  backgroundImage: Image
+                      .memory(base64Decode(pfp_base64_remember_me!))
+                      .image,
+                ),
+              ),
+            );
+          });
+        }
+      }
+      if (data.containsKey("captcha_stats") && data["captcha_stats"]) {
         if (data.containsKey("email") && data.containsKey("password")) {
           if (!await AccountManager.getAccount(data["email"], data["password"], null)) {
             setState(() {
@@ -331,37 +362,38 @@ class _WelcomePage extends State<JChat> {
             data.remove("on_fail_path");
 
           } else {
-            if (isRememberMe) {
-              Map<dynamic, dynamic>? map = await ProfileManager.getProfile(ClientAPI.user_id);
+            if (!isRememberMe) {
+              print("remember me activated");
+              Map<dynamic, dynamic>? map = await ProfileManager.getProfile(
+                  ClientAPI.user_id);
               if (map != null) {
                 var pfp = map["pfp"] as String;
                 ClientConfig clientConfig = (data["client_config"] as ClientConfig);
                 if (pfp.isEmpty) {
-                  clientConfig.config["remember_me"]["pfp"] = await ClientAPI.getDefaultPfp();
-
+                  clientConfig.config["remember_me"]["pfp"] =
+                  await ClientAPI.getDefaultPfp();
+                  print("server pfp is empty. Default Pfp");
                 } else if (pfp.startsWith("video;")) {
-                  /*VideoPlayerController.networkUrl(
-                      Uri.parse(ClientAPI.pfpUrl),
-                      httpHeaders: ClientAPI.getProfileHeaders() ?? {}); */
                   clientConfig.config["remember_me"]["pfp"] = "video;";
-
+                  print("server pfp is video");
                 } else {
-                  String? img = await Requests.getProfileAvatarBase64Image(headers: ClientAPI.getProfileHeaders());
-                  clientConfig.config["remember_me"]["pfp"] = img == null ? await ClientAPI.getDefaultPfp() : pfp;
+                  clientConfig.config["remember_me"]["pfp"] =
+                      pfp_base64_remember_me ?? await ClientAPI.getDefaultPfp();
+                  print("custom pfp detected. Getting data from server.");
                 }
 
                 clientConfig.config["remember_me"]["id"] = ClientAPI.user_id;
                 clientConfig.updateConfig(clientConfig.config);
               }
+
+              data.remove("captcha_stats");
+              data.remove("email");
+              data.remove("password");
+              data.remove("on_success_path");
+              data.remove("on_fail_path");
+
+              Navigator.pushNamed(context, "/home", arguments: data);
             }
-
-            data.remove("captcha_stats");
-            data.remove("email");
-            data.remove("password");
-            data.remove("on_success_path");
-            data.remove("on_fail_path");
-
-            Navigator.pushNamed(context, "/home", arguments: data);
           }
 
         } else if (data.containsKey("remember_me_id")) {
@@ -385,8 +417,8 @@ class _WelcomePage extends State<JChat> {
             Navigator.pushNamed(context, "/home", arguments: data);
           }
         }
-      });
-    }
+      }
+    });
   }
 
 
@@ -459,26 +491,11 @@ class _WelcomePage extends State<JChat> {
                         const SizedBox(height: 10.0),
                         SizedBox(
                           height: 100.0,
-                          child: clientConfig.config["remember_me"]["pfp"] != null ? GestureDetector(
+                          child: pfp_widget != null ? GestureDetector(
                                       onTap: () {
                                         loginWithRememberMe();
                                       },
-                                      child: (clientConfig.config["remember_me"]["pfp"] as String).startsWith("video;") ?
-                                      pfp_widget
-                                          : Container(
-                                        width: 100.0,
-                                        height: 100.0,
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.cyan,
-                                        ),
-                                        child: Center(
-                                          child: CircleAvatar(
-                                            radius: 50.0,
-                                            backgroundImage: Image.memory(base64Decode(clientConfig.config["remember_me"]["pfp"] as String)).image,
-                                          ),
-                                        ),
-                                      ),
+                                      child: pfp_widget
                                 )
                               : null,
                         ),

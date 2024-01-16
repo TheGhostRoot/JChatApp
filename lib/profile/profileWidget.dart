@@ -633,8 +633,7 @@ class ProfileHome extends State<ProfileScreen> {
                       });
                     },
                   ))),
-          Text(error, style: const TextStyle(color: Colors.red)),
-          Text(suss, style: const TextStyle(color: Colors.green)),
+          const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
               // TODO add 2fa
@@ -654,7 +653,9 @@ class ProfileHome extends State<ProfileScreen> {
                 'Change Email',
                 style: TextStyle(fontSize: 18.0),
               )),
-          const SizedBox(height: 40),
+
+          Text(error, style: const TextStyle(color: Colors.red)),
+          Text(suss, style: const TextStyle(color: Colors.green)),
           ElevatedButton(
             onPressed: () async {
               // save the changes if any
