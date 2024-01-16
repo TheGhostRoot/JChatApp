@@ -11,10 +11,11 @@ import 'package:jchatapp/account/accountRegisterWidget.dart';
 import 'package:jchatapp/friends/friend.dart';
 import 'package:jchatapp/navigationWidget.dart';
 import 'package:jchatapp/profile/profileManager.dart';
+import 'package:jchatapp/requestHandler.dart';
 import 'package:jchatapp/security/cryptionHandler.dart';
 import 'package:jchatapp/security/jwtHandler.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 import 'package:jchatapp/captcha/captchaWidget.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -83,12 +84,18 @@ class ClientAPI {
       cryption = Cryption();
       jwt = JwtHandle();
 
-      ByteData pfpData = await rootBundle.load(ClientConfig.default_avatar);
-      ByteData bannerData = await rootBundle.load(ClientConfig.black_box);
-      List<int> pfpBytes = img.encodePng(img.decodeImage(Uint8List.fromList(pfpData.buffer.asUint8List()))!);
-      List<int> bannerBytes = img.encodePng(img.decodeImage(Uint8List.fromList(bannerData.buffer.asUint8List()))!);
-      user_pfp_base64 = base64Encode(Uint8List.fromList(pfpBytes));
-      user_banner_base64 = base64Encode(Uint8List.fromList(bannerBytes));
+      user_pfp_base64 = await getDefaultPfp();
+      user_banner_base64 = await getDefaultBanner();
+  }
+
+  static Future<String> getDefaultPfp() async {
+    ByteData pfpData = await rootBundle.load(ClientConfig.default_avatar);
+    return base64Encode(Uint8List.fromList(img.encodePng(img.decodeImage(Uint8List.fromList(pfpData.buffer.asUint8List()))!)));
+  }
+
+  static Future<String> getDefaultBanner() async {
+    ByteData bannerData = await rootBundle.load(ClientConfig.black_box);
+    return base64Encode(Uint8List.fromList(img.encodePng(img.decodeImage(Uint8List.fromList(bannerData.buffer.asUint8List()))!)));
   }
 
   static String? getSessionHeader() {
@@ -159,10 +166,14 @@ class ClientConfig {
       configPath = "$path\\config.txt";
 
       File newFile = File(configPath);
+      print(configPath);
 
+      /*
       if (newFile.existsSync()) {
         newFile.deleteSync();
       }
+
+       */
 
       if (!newFile.existsSync()) {
         Directory(path).createSync();
@@ -263,6 +274,25 @@ class _WelcomePage extends State<JChat> {
 
   bool isRememberMe = false;
 
+
+  void setupPfpVideoWithState(double pfpRadius) {
+    setState(() {
+        if (videoPlayerControllerPfp == null) {
+            videoPlayerControllerPfp = VideoPlayerController.networkUrl(
+                Uri.parse(ClientAPI.pfpUrl),
+                httpHeaders: ClientAPI.getProfileHeaders() ?? {});
+        }
+        videoPlayerControllerPfp!.setLooping(true);
+        videoPlayerControllerPfp!.setVolume(0);
+        videoPlayerControllerPfp!.initialize().then((_) => setState(() {}));
+        videoPlayerControllerPfp!.play();
+
+
+        pfp_widget = CircleAvatar(
+            radius: pfpRadius, child: VideoPlayer(videoPlayerControllerPfp!));
+    });
+  }
+
   @override
   void dispose() {
     emailController.dispose();
@@ -275,9 +305,18 @@ class _WelcomePage extends State<JChat> {
   String error = "";
   bool _passwordVisible = false;
 
+  VideoPlayerController? videoPlayerControllerPfp;
+  Widget? pfp_widget;
+
   _WelcomePage(Map<dynamic, dynamic> given_data) {
     data = given_data;
     clientConfig = data["client_config"] as ClientConfig;
+    pfp_widget = Container();
+    if (clientConfig.config["remember_me"]["pfp"] != null &&
+        (clientConfig.config["remember_me"]["pfp"] as String).startsWith("video;")) {
+      setupPfpVideoWithState(70);
+
+    }
     if (data.containsKey("captcha_stats") && data["captcha_stats"]) {
       Future.delayed(const Duration(microseconds: 1), () async {
         if (data.containsKey("email") && data.containsKey("password")) {
@@ -295,10 +334,23 @@ class _WelcomePage extends State<JChat> {
             if (isRememberMe) {
               Map<dynamic, dynamic>? map = await ProfileManager.getProfile(ClientAPI.user_id);
               if (map != null) {
+                var pfp = map["pfp"] as String;
                 ClientConfig clientConfig = (data["client_config"] as ClientConfig);
+                if (pfp.isEmpty) {
+                  clientConfig.config["remember_me"]["pfp"] = await ClientAPI.getDefaultPfp();
+
+                } else if (pfp.startsWith("video;")) {
+                  /*VideoPlayerController.networkUrl(
+                      Uri.parse(ClientAPI.pfpUrl),
+                      httpHeaders: ClientAPI.getProfileHeaders() ?? {}); */
+                  clientConfig.config["remember_me"]["pfp"] = "video;";
+
+                } else {
+                  String? img = await Requests.getProfileAvatarBase64Image(headers: ClientAPI.getProfileHeaders());
+                  clientConfig.config["remember_me"]["pfp"] = img == null ? await ClientAPI.getDefaultPfp() : pfp;
+                }
+
                 clientConfig.config["remember_me"]["id"] = ClientAPI.user_id;
-                clientConfig.config["remember_me"]["pfp"] = "";
-                // TODO full this.
                 clientConfig.updateConfig(clientConfig.config);
               }
             }
@@ -411,7 +463,9 @@ class _WelcomePage extends State<JChat> {
                                       onTap: () {
                                         loginWithRememberMe();
                                       },
-                                      child: Container(
+                                      child: (clientConfig.config["remember_me"]["pfp"] as String).startsWith("video;") ?
+                                      pfp_widget
+                                          : Container(
                                         width: 100.0,
                                         height: 100.0,
                                         decoration: const BoxDecoration(
@@ -421,7 +475,7 @@ class _WelcomePage extends State<JChat> {
                                         child: Center(
                                           child: CircleAvatar(
                                             radius: 50.0,
-                                            backgroundImage: clientConfig.config["remember_me"]["pfp"] as ImageProvider,
+                                            backgroundImage: Image.memory(base64Decode(clientConfig.config["remember_me"]["pfp"] as String)).image,
                                           ),
                                         ),
                                       ),
@@ -444,7 +498,6 @@ class _WelcomePage extends State<JChat> {
                                   hintText: "Email",
                                   labelText: "Email",
                                   hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
-
                             ),
                           ),
 
@@ -502,9 +555,9 @@ class _WelcomePage extends State<JChat> {
                           child: InkWell(
                             child: const Text('Forgot password?',
                             style: TextStyle(color: Colors.blue)),
-                            onTap: () async => await launchUrl(
-                              Uri.parse('https://docs.flutter.io/flutter/services/UrlLauncher-class.html'),
-                            ),
+                            onTap: () async {
+                              // TODO add forgot password
+                            }
                           ),
                         ),
                         const SizedBox(height: 20.0),

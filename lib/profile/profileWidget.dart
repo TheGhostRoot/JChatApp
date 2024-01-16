@@ -313,6 +313,7 @@ class ProfileHome extends State<ProfileScreen> {
       return Container();
     }
     return Container(
+      padding: const EdgeInsets.only(top: 5),
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.vertical(
               bottom: Radius.circular(20.0),
@@ -325,6 +326,7 @@ class ProfileHome extends State<ProfileScreen> {
 
   Widget getBannerImage(String img) {
     return Container(
+        padding: const EdgeInsets.only(top: 5),
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.vertical(
               bottom: Radius.circular(20.0),
@@ -631,10 +633,28 @@ class ProfileHome extends State<ProfileScreen> {
                       });
                     },
                   ))),
-          const SizedBox(height: 10),
           Text(error, style: const TextStyle(color: Colors.red)),
           Text(suss, style: const TextStyle(color: Colors.green)),
-          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () async {
+              // TODO add 2fa
+              data["on_success_path"] = "/2fa";
+              data["on_fail_path"] = "/home";
+              data["2fa"] = true;
+              Navigator.pushNamed(context, "/2fa", arguments: data);
+            },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyan,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  padding: const EdgeInsets.only(left: 30, right: 30)
+              ),
+              child: const Text(
+                'Change Email',
+                style: TextStyle(fontSize: 18.0),
+              )),
+          const SizedBox(height: 40),
           ElevatedButton(
             onPressed: () async {
               // save the changes if any
