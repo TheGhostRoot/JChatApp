@@ -101,7 +101,6 @@ class Requests {
           headers: headers)).body;
 
     } catch (e) {
-      print("Request Error avatar: " + e.toString());
       return null;
     }
   }
@@ -113,7 +112,6 @@ class Requests {
           headers: headers)).body;
 
     } catch (e) {
-      print("Request Error: banner: " + e.toString());
       return null;
     }
   }

@@ -14,6 +14,7 @@ import 'package:jchatapp/profile/profileManager.dart';
 import 'package:jchatapp/requestHandler.dart';
 import 'package:jchatapp/security/cryptionHandler.dart';
 import 'package:jchatapp/security/jwtHandler.dart';
+import 'package:jchatapp/verification/verificationWidget.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:jchatapp/captcha/captchaWidget.dart';
@@ -262,7 +263,9 @@ Future<void> main() async {
 
         "/register": (BuildContext context) => AccountRegisterScreen(map),
 
-        "/home": (BuildContext context) => NavigationScreen(map)
+        "/home": (BuildContext context) => NavigationScreen(map),
+
+        "/verify": (BuildContext context) => VerificationPage(map),
       }));
 }
 
@@ -308,6 +311,10 @@ class _WelcomePage extends State<JChat> {
   late ClientConfig clientConfig;
   late Map<dynamic, dynamic> data;
   String error = "";
+
+  String errorForgetPassword = "";
+  String successForgetPassword = "";
+
   bool _passwordVisible = false;
 
   Widget? pfp_widget;
@@ -317,12 +324,19 @@ class _WelcomePage extends State<JChat> {
   _WelcomePage(Map<dynamic, dynamic> given_data) {
     data = given_data;
     clientConfig = data["client_config"] as ClientConfig;
+    if (data.containsKey("forgetPassword")) {
+      if (data["forgetPassword"]) {
+        successForgetPassword = "Successfully changed password";
+
+      } else {
+        errorForgetPassword = "Failed to change password";
+      }
+    }
     Future.delayed(const Duration(microseconds: 1), () async {
       if (clientConfig.config["remember_me"]["pfp"] != null) {
         Map<dynamic, dynamic>? map = await ProfileManager.getProfile(clientConfig.config["remember_me"]["id"]);
         if (map != null && (map["pfp"] as String).startsWith("video;")) {
           setupPfpVideo(70, clientConfig.config["remember_me"]["id"]);
-          print("setting up pfp video");
 
         } else {
           pfp_base64_remember_me = await Requests.getProfileAvatarBase64Image(
@@ -363,7 +377,6 @@ class _WelcomePage extends State<JChat> {
 
           } else {
             if (!isRememberMe) {
-              print("remember me activated");
               Map<dynamic, dynamic>? map = await ProfileManager.getProfile(
                   ClientAPI.user_id);
               if (map != null) {
@@ -372,14 +385,13 @@ class _WelcomePage extends State<JChat> {
                 if (pfp.isEmpty) {
                   clientConfig.config["remember_me"]["pfp"] =
                   await ClientAPI.getDefaultPfp();
-                  print("server pfp is empty. Default Pfp");
+
                 } else if (pfp.startsWith("video;")) {
                   clientConfig.config["remember_me"]["pfp"] = "video;";
-                  print("server pfp is video");
+
                 } else {
                   clientConfig.config["remember_me"]["pfp"] =
                       pfp_base64_remember_me ?? await ClientAPI.getDefaultPfp();
-                  print("custom pfp detected. Getting data from server.");
                 }
 
                 clientConfig.config["remember_me"]["id"] = ClientAPI.user_id;
@@ -447,6 +459,20 @@ class _WelcomePage extends State<JChat> {
     data["on_fail_path"] = "/welcome";
     data["remember_me_id"] = clientConfig.config["remember_me"]["id"] as int;
     Navigator.pushNamed(context, "/captcha", arguments: data);
+  }
+
+  void resetPassword() {
+    if (emailController.text.isEmpty) {
+      setState(() {
+        error = "Enter the email of the account";
+      });
+      return;
+    }
+    data["on_success_path"] = "/welcome";
+    data["on_fail_path"] = "/welcome";
+    data["forgetPassword"] = false;
+    data["email"] = emailController.text;
+    Navigator.pushNamed(context, "/verify", arguments: data);
   }
 
   @override
@@ -567,13 +593,15 @@ class _WelcomePage extends State<JChat> {
                             )
                           ],
                         ),
-                        const SizedBox(height: 20.0),
+                        //const SizedBox(height: 20.0),
+                        Text(errorForgetPassword, style: const TextStyle(color: Colors.red)),
+                        Text(successForgetPassword, style: const TextStyle(color: Colors.green)),
                         Center(
                           child: InkWell(
                             child: const Text('Forgot password?',
                             style: TextStyle(color: Colors.blue)),
                             onTap: () async {
-                              // TODO add forgot password
+                              resetPassword();
                             }
                           ),
                         ),
