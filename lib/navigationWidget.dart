@@ -4,7 +4,7 @@ import 'package:jchatapp/profile/profileWidget.dart';
 class NavigationScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
 
-  NavigationScreen(Map<dynamic, dynamic> given_data) {
+  NavigationScreen(Map<dynamic, dynamic> given_data, {super.key}) {
     data = given_data;
   }
 
@@ -34,11 +34,11 @@ class NavigationHome extends State<NavigationScreen> {
         decoration: const BoxDecoration(
             color: Color.fromRGBO(64, 64, 64, 1)
         ),
-        child: const Column(children: [
+        child: const SingleChildScrollView(child: Column(children: [
           SizedBox(height: 40.0),
-          Row(children: [
+          SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
           Text("  JChat", style: TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.bold, fontSize: 25))
-        ])])
+        ]))]))
     );
   }
 
@@ -74,7 +74,7 @@ class NavigationHome extends State<NavigationScreen> {
         indicatorColor: const Color.fromRGBO(237, 237, 237, 1),
         indicatorShape: const CircleBorder()
       ),
-        body: [Text("Groups"), Text("Friends"), Text("Posts"), ProfileScreen(data)][currentPageIndex]
+        body: [const Text("Groups"), const Text("Friends"), const Text("Posts"), ProfileScreen(data)][currentPageIndex]
     ));
   }
 }

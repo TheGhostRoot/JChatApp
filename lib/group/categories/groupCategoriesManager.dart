@@ -3,18 +3,18 @@ import 'package:jchatapp/requestHandler.dart';
 
 class GroupCategoryManager {
 
-  static Future<Map<dynamic, dynamic>?> getChannels(int? group_id) async {
-    if (ClientAPI.user_id == 0 || group_id == null || group_id == 0) {
+  static Future<Map<dynamic, dynamic>?> getChannels(int? groupId) async {
+    if (ClientAPI.user_id == 0 || groupId == null || groupId == 0) {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["group_id"] = group_id;
+    claims["group_id"] = groupId;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
@@ -23,15 +23,15 @@ class GroupCategoryManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.get("${ClientAPI.server}/group/category", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("categories")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("categories")) {
       return null;
     }
 
-    return server_data["categories"];
+    return serverData["categories"];
   }
 
 
@@ -40,8 +40,8 @@ class GroupCategoryManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -52,15 +52,15 @@ class GroupCategoryManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.post("${ClientAPI.server}/group/category", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 
@@ -69,8 +69,8 @@ class GroupCategoryManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -81,15 +81,15 @@ class GroupCategoryManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.patch("${ClientAPI.server}/group/category", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 
@@ -98,8 +98,8 @@ class GroupCategoryManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -110,15 +110,15 @@ class GroupCategoryManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.delete("${ClientAPI.server}/group/category", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 }

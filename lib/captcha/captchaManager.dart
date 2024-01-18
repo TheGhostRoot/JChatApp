@@ -47,14 +47,14 @@ class CaptchaManager {
       return false;
     }
 
-    String? captcha_data = ClientAPI.getCaptchaHeader();
-    if (captcha_data == null) {
+    String? captchaData = ClientAPI.getCaptchaHeader();
+    if (captchaData == null) {
       return false;
     }
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = jwtToken;
-    header[ClientAPI.HEADER_CAPTCHA] = captcha_data;
+    header[ClientAPI.HEADER_CAPTCHA] = captchaData;
 
     String? res = await Requests.post("${ClientAPI.server}/captcha", headers: header);
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);

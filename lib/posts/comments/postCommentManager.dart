@@ -5,19 +5,19 @@ import 'package:jchatapp/requestHandler.dart';
 class PostsCommentsManager {
 
 
-  static Future<Map<dynamic, dynamic>?> getComments(int amount, int post_id) async {
+  static Future<Map<dynamic, dynamic>?> getComments(int amount, int postId) async {
     if (ClientAPI.user_id == 0) {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
     Map<dynamic, dynamic> claims = {};
     claims['amount'] = amount;
-    claims['post_id'] = post_id;
+    claims['post_id'] = postId;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
@@ -26,7 +26,7 @@ class PostsCommentsManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.get("${ClientAPI.server}/posts/comment", headers: header);
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
@@ -42,8 +42,8 @@ class PostsCommentsManager {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
@@ -54,15 +54,15 @@ class PostsCommentsManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.post("${ClientAPI.server}/posts/comment", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("message_id")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("message_id")) {
       return null;
     }
 
-    return server_data["message_id"];
+    return serverData["message_id"];
   }
 
   static Future<bool> updateComments(Map<dynamic, dynamic> data) async {
@@ -70,8 +70,8 @@ class PostsCommentsManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -82,31 +82,31 @@ class PostsCommentsManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.patch("${ClientAPI.server}/posts/comment", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 
-  static Future<bool> deleteComments(int post_id, int message_id) async {
+  static Future<bool> deleteComments(int postId, int messageId) async {
     if (ClientAPI.user_id == 0) {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["message_id"] = message_id;
-    claims["post_id"] = post_id;
+    claims["message_id"] = messageId;
+    claims["post_id"] = postId;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
@@ -115,15 +115,15 @@ class PostsCommentsManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.patch("${ClientAPI.server}/posts/comment", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 }

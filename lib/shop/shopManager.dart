@@ -9,8 +9,8 @@ class ShopManager {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
@@ -24,7 +24,7 @@ class ShopManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.get("${ClientAPI.server}/shop", headers: header);
 
@@ -42,8 +42,8 @@ class ShopManager {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
@@ -54,7 +54,7 @@ class ShopManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.post("${ClientAPI.server}/shop", headers: header);
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
@@ -72,8 +72,8 @@ class ShopManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -84,7 +84,7 @@ class ShopManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.patch("${ClientAPI.server}/shop", headers: header);
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
@@ -95,18 +95,18 @@ class ShopManager {
     return data["stats"];
   }
 
-  static Future<bool> deleteItem(int item_id) async {
+  static Future<bool> deleteItem(int itemId) async {
     if (ClientAPI.user_id == 0) {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["id"] = item_id;
+    claims["id"] = itemId;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
@@ -115,7 +115,7 @@ class ShopManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.delete("${ClientAPI.server}/shop", headers: header);
 

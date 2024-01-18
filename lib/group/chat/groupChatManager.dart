@@ -10,8 +10,8 @@ class GroupChatManager {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
@@ -22,15 +22,15 @@ class GroupChatManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.get("${ClientAPI.server}/group/chat", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("messages")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("messages")) {
       return null;
     }
 
-    return server_data["messages"];
+    return serverData["messages"];
   }
 
 
@@ -40,8 +40,8 @@ class GroupChatManager {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
@@ -52,15 +52,15 @@ class GroupChatManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.post("${ClientAPI.server}/group/chat", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("message_id")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("message_id")) {
       return null;
     }
 
-    return server_data["message_id"];
+    return serverData["message_id"];
   }
 
 
@@ -70,8 +70,8 @@ class GroupChatManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -82,15 +82,15 @@ class GroupChatManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.delete("${ClientAPI.server}/group/chat", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 
@@ -99,8 +99,8 @@ class GroupChatManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -111,15 +111,15 @@ class GroupChatManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.patch("${ClientAPI.server}/group/chat", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 }

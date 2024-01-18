@@ -3,18 +3,18 @@ import 'package:jchatapp/requestHandler.dart';
 
 class DMManager {
 
-  static Future<Map<dynamic, dynamic>?> getMessages(int? channel_id, int amount) async {
-    if (ClientAPI.user_id == 0 || channel_id == null || channel_id == 0) {
+  static Future<Map<dynamic, dynamic>?> getMessages(int? channelId, int amount) async {
+    if (ClientAPI.user_id == 0 || channelId == null || channelId == 0) {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["channel_id"] = channel_id;
+    claims["channel_id"] = channelId;
     claims["amount"] = amount;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);
@@ -24,7 +24,7 @@ class DMManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.get("${ClientAPI.server}/friend/chat", headers: header);
     Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
@@ -41,8 +41,8 @@ class DMManager {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
@@ -53,15 +53,15 @@ class DMManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.post("${ClientAPI.server}/friend/chat", headers: header);
-    Map<dynamic, dynamic>? ser_data = ClientAPI.jwt.getData(res);
-    if (ser_data == null || !ser_data.containsKey("message_id")) {
+    Map<dynamic, dynamic>? serData = ClientAPI.jwt.getData(res);
+    if (serData == null || !serData.containsKey("message_id")) {
       return null;
     }
 
-    return ser_data["message_id"];
+    return serData["message_id"];
   }
 
 
@@ -70,8 +70,8 @@ class DMManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -82,15 +82,15 @@ class DMManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.patch("${ClientAPI.server}/friend/chat", headers: header);
-    Map<dynamic, dynamic>? ser_data = ClientAPI.jwt.getData(res);
-    if (ser_data == null || !ser_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serData = ClientAPI.jwt.getData(res);
+    if (serData == null || !serData.containsKey("stats")) {
       return false;
     }
 
-    return ser_data["stats"];
+    return serData["stats"];
   }
 
 
@@ -99,8 +99,8 @@ class DMManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -111,15 +111,15 @@ class DMManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.delete("${ClientAPI.server}/friend/chat", headers: header);
-    Map<dynamic, dynamic>? ser_data = ClientAPI.jwt.getData(res);
-    if (ser_data == null || !ser_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serData = ClientAPI.jwt.getData(res);
+    if (serData == null || !serData.containsKey("stats")) {
       return false;
     }
 
-    return ser_data["stats"];
+    return serData["stats"];
   }
 
 }

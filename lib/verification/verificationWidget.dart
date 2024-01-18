@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:math';
 
 import 'package:email_sender/email_sender.dart';
@@ -9,7 +9,7 @@ import '../main.dart';
 class VerificationPage extends StatefulWidget {
   late Map<dynamic, dynamic> data;
 
-  VerificationPage(Map<dynamic, dynamic> given_data) {
+  VerificationPage(Map<dynamic, dynamic> given_data, {super.key}) {
     data = given_data;
   }
 
@@ -31,6 +31,9 @@ class VerificaionHome extends State<VerificationPage> {
     num3Controller.dispose();
     num4Controller.dispose();
     num5Controller.dispose();
+    if (_timer != null) {
+      _timer!.cancel();
+    }
     super.dispose();
   }
 
@@ -43,6 +46,27 @@ class VerificaionHome extends State<VerificationPage> {
   final Random _rnd = Random();
   String code = "";
 
+  Timer? _timer;
+  int _start = ClientAPI.verification_time_seconds;
+
+  void startTimer() {
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(
+      oneSec,
+          (Timer timer) {
+        if (_start == 0) {
+          setState(() {
+            timer.cancel();
+          });
+        } else {
+          setState(() {
+            _start--;
+          });
+        }
+      },
+    );
+  }
+
   String generateCode(int size) {
     return String.fromCharCodes(Iterable.generate(
         size, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
@@ -50,12 +74,13 @@ class VerificaionHome extends State<VerificationPage> {
 
   Future<bool> sendEmail()  async {
     code = generateCode(5);
-    var response = await emailsender.sendMessage(data["email"], "JChat Verify Code", "verify code", code);
+    var response = await emailsender.sendMessage(data["email"], "JChat Verify Code", "verify code", "Your Verification Code is $code");
     return response["message"] == "emailSendSuccess";
   }
 
   VerificaionHome(Map<dynamic, dynamic> given_data) {
     data = given_data;
+    startTimer();
     Future.delayed(const Duration(microseconds: 1), () async {
       if (!await sendEmail()) {
         setState(() {
@@ -63,6 +88,14 @@ class VerificaionHome extends State<VerificationPage> {
         });
       }
     });
+  }
+
+  String _printDuration(Duration duration) {
+    String negativeSign = duration.isNegative ? '-' : '';
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60).abs());
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60).abs());
+    return "$negativeSign${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 
   @override
@@ -107,9 +140,15 @@ class VerificaionHome extends State<VerificationPage> {
                                   hintStyle: const TextStyle(
                                       color: Color.fromRGBO(54, 54, 54, 100))),
                               onChanged: (text) {
-                                if (text.length > 0) {
+                                if (text.isNotEmpty) {
                                   setState(() {
                                     num1Controller.text = text[0];
+                                    if (text.length == 5) {
+                                      num2Controller.text = text[1];
+                                      num3Controller.text = text[2];
+                                      num4Controller.text = text[3];
+                                      num5Controller.text = text[4];
+                                    }
                                   });
                                 }
                               }),
@@ -129,7 +168,7 @@ class VerificaionHome extends State<VerificationPage> {
                                   hintStyle: const TextStyle(
                                       color: Color.fromRGBO(54, 54, 54, 100))),
                               onChanged: (text) {
-                                if (text.length > 0) {
+                                if (text.isNotEmpty) {
                                   setState(() {
                                     num2Controller.text = text[0];
                                   });
@@ -151,7 +190,7 @@ class VerificaionHome extends State<VerificationPage> {
                                   hintStyle: const TextStyle(
                                       color: Color.fromRGBO(54, 54, 54, 100))),
                               onChanged: (text) {
-                                if (text.length > 0) {
+                                if (text.isNotEmpty) {
                                   setState(() {
                                     num3Controller.text = text[0];
                                   });
@@ -173,7 +212,7 @@ class VerificaionHome extends State<VerificationPage> {
                                   hintStyle: const TextStyle(
                                       color: Color.fromRGBO(54, 54, 54, 100))),
                               onChanged: (text) {
-                                if (text.length > 0) {
+                                if (text.isNotEmpty) {
                                   setState(() {
                                     num4Controller.text = text[0];
                                   });
@@ -195,7 +234,7 @@ class VerificaionHome extends State<VerificationPage> {
                                   hintStyle: const TextStyle(
                                       color: Color.fromRGBO(54, 54, 54, 100))),
                               onChanged: (text) {
-                                if (text.length > 0) {
+                                if (text.isNotEmpty) {
                                   setState(() {
                                     num5Controller.text = text[0];
                                   });
@@ -204,22 +243,27 @@ class VerificaionHome extends State<VerificationPage> {
                         ),
                       ])),
 
-                  const SizedBox(height: 30.0),
+                  const SizedBox(height: 10.0),
+                  Text(_start == 0 ? "Expired!" : "${_printDuration(Duration(seconds: _start))} Time Left",
+                      style: _start == 0 ? const TextStyle(color: Colors.red, fontSize: 20) :
+                      const TextStyle(color: Colors.green, fontSize: 20)),
+                  const SizedBox(height: 20.0),
+
                   ElevatedButton(
                     onPressed: () async {
-                      String entered_code = num1Controller.text;
-                      entered_code += num2Controller.text;
-                      entered_code += num3Controller.text;
-                      entered_code += num4Controller.text;
-                      entered_code += num5Controller.text;
+                      String enteredCode = num1Controller.text;
+                      enteredCode += num2Controller.text;
+                      enteredCode += num3Controller.text;
+                      enteredCode += num4Controller.text;
+                      enteredCode += num5Controller.text;
 
-                      if (entered_code == code) {
-                        data["forgetPassword"] = true;
-                        Navigator.pushNamed(context, data["on_success_path"], arguments: data);
+                      if (enteredCode == code) {
+                        data["captcha_stats"] = true;
+                        Navigator.pushNamed(context, data["verify_on_success_path"], arguments: data);
 
                       } else {
-                        data["forgetPassword"] = false;
-                        Navigator.pushNamed(context, data["on_fail_path"], arguments: data);
+                        data["captcha_stats"] = false;
+                        Navigator.pushNamed(context, data["verify_on_fail_path"], arguments: data);
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -238,7 +282,7 @@ class VerificaionHome extends State<VerificationPage> {
                   const SizedBox(height: 10.0),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, "/welcome", arguments: data);
+                      Navigator.pushNamed(context, data["on_fail_path"], arguments: data);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.cyan,

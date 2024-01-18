@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:jchatapp/requestHandler.dart';
 import 'package:jchatapp/main.dart';
 import 'package:crypt/crypt.dart';
@@ -83,14 +82,14 @@ class AccountManager {
       return false;
     }
 
-    String? captcha_data = ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id.toString());
-    if (captcha_data == null) {
+    String? captchaData = ClientAPI.cryption.globalEncrypt(ClientAPI.captcha_id.toString());
+    if (captchaData == null) {
       return false;
     }
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authToken;
-    header[ClientAPI.HEADER_CAPTCHA] = captcha_data;
+    header[ClientAPI.HEADER_CAPTCHA] = captchaData;
 
     String? res = await Requests.post("${ClientAPI.server}/account", headers: header);
 
@@ -109,10 +108,17 @@ class AccountManager {
   }
 
   static Future<bool> getAccount(String? email, String? password, int? id) async {
+    if (ClientAPI.captcha_id == 0) {
+      return false;
+    }
     Map<dynamic, dynamic> claims = {};
     if (email != null && password != null) {
       claims["email"] = email;
       claims["password"] = _handlePassword(password);
+
+    } else if (email != null && password == null) {
+      claims["email"] = email;
+      claims[ClientAPI.resetPasswordKey] = true;
 
     } else if (id != null) {
       claims["id"] = id;
@@ -135,19 +141,28 @@ class AccountManager {
     header[ClientAPI.HEADER_AUTH] = jwt;
     header[ClientAPI.HEADER_CAPTCHA] = captchaData;
 
-    String? res = await Requests.get("${ClientAPI.server}/account", headers: header);
-    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
-    if (data == null) {
-      return false;
+    if (claims.containsKey(ClientAPI.resetPasswordKey)) {
+      String? res = await Requests.get(
+          "${ClientAPI.server}/account", headers: header);
+      Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
+      return data != null && data.containsKey("stats") && data["stats"];
+
+    } else {
+      String? res = await Requests.get(
+          "${ClientAPI.server}/account", headers: header);
+      Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
+      if (data == null) {
+        return false;
+      }
+
+      ClientAPI.USER_ENCRYP_KEY = data["encry_key"] as String;
+      ClientAPI.USER_SIGN_KEY = data["sig_key"] as String;
+      ClientAPI.sess_id = data["sess_id"] as int;
+      ClientAPI.user_id = data["id"] as int;
+      ClientAPI.user_name = data["name"] as String;
+      ClientAPI.user_email = data["email"] as String;
+      return true;
     }
-
-    ClientAPI.USER_ENCRYP_KEY = data["encry_key"] as String;
-    ClientAPI.USER_SIGN_KEY = data["sig_key"] as String;
-    ClientAPI.sess_id = data["sess_id"] as int;
-    ClientAPI.user_id = data["id"] as int;
-    ClientAPI.user_name = data["name"] as String;
-
-    return true;
   }
 
   static Future<bool> updateAccount(Map<dynamic, dynamic> changes) async {
@@ -156,20 +171,20 @@ class AccountManager {
       return false;
     }
 
-    String? captcha = ClientAPI.cryption.userEncrypt(ClientAPI.captcha_id.toString());
+    String? captcha = ClientAPI.getCaptchaHeader();
     if (captcha == null) {
       return false;
     }
 
 
-    String? sess_data = ClientAPI.cryption.userEncrypt(ClientAPI.sess_id.toString());
-    if (sess_data == null) {
+    String? sessData = ClientAPI.getSessionHeader();
+    if (sessData == null) {
       return false;
     }
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = auth;
-    header[ClientAPI.HEADER_SESS] = sess_data;
+    header[ClientAPI.HEADER_SESS] = sessData;
     header[ClientAPI.HEADER_CAPTCHA] = captcha;
 
     String? res = await Requests.patch("${ClientAPI.server}/account", headers: header);

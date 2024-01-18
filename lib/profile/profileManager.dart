@@ -5,13 +5,13 @@ import 'package:jchatapp/requestHandler.dart';
 
 class ProfileManager {
 
-  static Future<Map<dynamic, dynamic>?> getProfile(int? user_id) async {
-    if (user_id == null) {
+  static Future<Map<dynamic, dynamic>?> getProfile(int? userId) async {
+    if (userId == null) {
       return null;
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["id"] = user_id;
+    claims["id"] = userId;
 
     String? jwtToken = ClientAPI.jwt.generateGlobalJwt(claims, true);
     if (jwtToken == null) {
@@ -64,7 +64,7 @@ class ProfileManager {
         path = banner;
       }
 
-      String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
+      String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=$isVideo&pfp=$isPfp&id=${ClientAPI.user_id}", "POST", File(path));
       Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
       if (data == null || !data.containsKey("stats")) {
         return false;
@@ -85,7 +85,7 @@ class ProfileManager {
         path = pfp;
       }
 
-      String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=${isVideo}&pfp=${isPfp}&id=${ClientAPI.user_id}", "POST", File(path));
+      String? res = await Requests.uploadFile("${ClientAPI.server}/profile?video=$isVideo&pfp=$isPfp&id=${ClientAPI.user_id}", "POST", File(path));
       Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res, global: true);
       if (data == null || !data.containsKey("stats")) {
         return false;

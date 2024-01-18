@@ -11,24 +11,24 @@ class FriendManager {
       return null;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return null;
     }
 
-    String all_friends = "";
+    String allFriends = "";
     for (Friend friend in ClientAPI.friends) {
       if (friend.id != null) {
-        all_friends += ",${friend.id}";
+        allFriends += ",${friend.id}";
       }
     }
 
-    if (all_friends.isEmpty) {
+    if (allFriends.isEmpty) {
       return null;
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["friends"] = all_friends;
+    claims["friends"] = allFriends;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
@@ -37,7 +37,7 @@ class FriendManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.get("${ClientAPI.server}/friend", headers: header);
     return ClientAPI.jwt.getData(res);
@@ -50,8 +50,8 @@ class FriendManager {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
@@ -62,31 +62,31 @@ class FriendManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.patch("${ClientAPI.server}/friend", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 
-  static Future<bool> removeFriend(int? friend_id) async {
-    if (ClientAPI.user_id == 0 || friend_id == null || friend_id == 0) {
+  static Future<bool> removeFriend(int? friendId) async {
+    if (ClientAPI.user_id == 0 || friendId == null || friendId == 0) {
       return false;
     }
 
-    String? sess_header = ClientAPI.getSessionHeader();
-    if (sess_header == null) {
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
       return false;
     }
 
     Map<dynamic, dynamic> claims = {};
     claims["friends"] = ClientAPI.friends;
-    claims["friend_id"] = friend_id;
+    claims["friend_id"] = friendId;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
@@ -95,15 +95,15 @@ class FriendManager {
 
     Map<String, String> header = {};
     header[ClientAPI.HEADER_AUTH] = authData;
-    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.delete("${ClientAPI.server}/friend", headers: header);
-    Map<dynamic, dynamic>? server_data = ClientAPI.jwt.getData(res);
-    if (server_data == null || !server_data.containsKey("stats")) {
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
       return false;
     }
 
-    return server_data["stats"];
+    return serverData["stats"];
   }
 
 }

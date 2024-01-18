@@ -53,7 +53,7 @@ class ClientAPI {
       "sE1MHHQ/R3LsxNeb3+Lr/xHHQAI83VvXk+YEsTqiNhsfNV7ihj+FcFvQW3pvieZtPKaMQw60vADIPEP0bM16WtycxtWTH0bevIXwWk/Kw+rCnI/mrOGKjSy9wFymceHCMwk03GNSWqBwzOLMrVCXIbFTZ8wNj1nQHHvrEU5Ihx3M=";
 
   static String host = "192.168.0.215:25500";
-  static String server = "http://"+host+"/api/v1";
+  static String server = "http://$host/api/v1";
 
   static late Cryption cryption;
   static late JwtHandle jwt;
@@ -72,8 +72,11 @@ class ClientAPI {
 
   static int captcha_id = 0;
   static int captcha_time = 20;
+  static int verification_time_seconds = 600;
+  static String resetPasswordKey = "6RDt7fFTD7TFuvyg86RFY";
   static int user_id = 0;
   static String user_name = "";
+  static String user_email = "";
   static Map<String, Object> user_badges = {};
   static String user_about_me = "";
   static String user_stats = "0";
@@ -114,8 +117,8 @@ class ClientAPI {
         "Host": ClientAPI.host, "Accept": "*/*"};
   }
 
-  static Map<String, String>? getProfileHeadersWithRememberMe(int remember_me) {
-    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": remember_me}, true);
+  static Map<String, String>? getProfileHeadersWithRememberMe(int rememberMe) {
+    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": rememberMe}, true);
     //String? sessHeader = ClientAPI.getSessionHeader();
     if (authHeader == null) {
       return null;
@@ -178,12 +181,11 @@ class ClientConfig {
       configPath = "$path\\config.txt";
 
       File newFile = File(configPath);
-      print(configPath);
 
 
-      /*if (newFile.existsSync()) {
+      if (newFile.existsSync()) {
         newFile.deleteSync();
-      }*/
+      }
 
       if (!newFile.existsSync()) {
         Directory(path).createSync();
@@ -243,7 +245,6 @@ Future<void> main() async {
   Map<dynamic, dynamic> map = {};
   map["client_config"] = clientConfig;
 
-  // TODO add loading screen
 
   VideoPlayerMediaKit.ensureInitialized(
     macOS: true,
@@ -272,7 +273,7 @@ Future<void> main() async {
 class JChat extends StatefulWidget {
   late Map<dynamic, dynamic> data;
 
-  JChat(Map<dynamic, dynamic> given_data) {
+  JChat(Map<dynamic, dynamic> given_data, {super.key}) {
     data = given_data;
   }
 
@@ -320,19 +321,31 @@ class _WelcomePage extends State<JChat> {
   Widget? pfp_widget;
   String? pfp_base64_remember_me;
 
-
   _WelcomePage(Map<dynamic, dynamic> given_data) {
     data = given_data;
     clientConfig = data["client_config"] as ClientConfig;
-    if (data.containsKey("forgetPassword")) {
-      if (data["forgetPassword"]) {
-        successForgetPassword = "Successfully changed password";
-
-      } else {
-        errorForgetPassword = "Failed to change password";
-      }
-    }
     Future.delayed(const Duration(microseconds: 1), () async {
+      if (data.containsKey("forgetPassword_password") && data["captcha_stats"]) {
+          if (await AccountManager.getAccount(data["email"], null, null)) {
+            setState(() {
+              successForgetPassword = "Successfully changed password";
+            });
+
+          } else {
+            setState(() {
+              errorForgetPassword = "Failed to change password";
+            });
+          }
+
+
+        data.remove("captcha_stats");
+        data.remove("email");
+        data.remove("on_success_path");
+        data.remove("on_fail_path");
+        data.remove("verify_on_success_path");
+        data.remove("verify_on_fail_path");
+        data.remove("forgetPassword_password");
+      }
       if (clientConfig.config["remember_me"]["pfp"] != null) {
         Map<dynamic, dynamic>? map = await ProfileManager.getProfile(clientConfig.config["remember_me"]["id"]);
         if (map != null && (map["pfp"] as String).startsWith("video;")) {
@@ -376,7 +389,7 @@ class _WelcomePage extends State<JChat> {
             data.remove("on_fail_path");
 
           } else {
-            if (!isRememberMe) {
+            if (isRememberMe) {
               Map<dynamic, dynamic>? map = await ProfileManager.getProfile(
                   ClientAPI.user_id);
               if (map != null) {
@@ -398,14 +411,15 @@ class _WelcomePage extends State<JChat> {
                 clientConfig.updateConfig(clientConfig.config);
               }
 
-              data.remove("captcha_stats");
-              data.remove("email");
-              data.remove("password");
-              data.remove("on_success_path");
-              data.remove("on_fail_path");
-
-              Navigator.pushNamed(context, "/home", arguments: data);
             }
+
+            data.remove("captcha_stats");
+            data.remove("email");
+            data.remove("password");
+            data.remove("on_success_path");
+            data.remove("on_fail_path");
+
+            Navigator.pushNamed(context, "/home", arguments: data);
           }
 
         } else if (data.containsKey("remember_me_id")) {
@@ -446,7 +460,7 @@ class _WelcomePage extends State<JChat> {
     return Colors.white;
   }
 
-  void loginWithEmailAndPassword()  {
+  void loginWithEmailAndPassword(BuildContext context)  {
     data["on_success_path"] = "/welcome";
     data["on_fail_path"] = "/welcome";
     data["password"] = passwordController.text;
@@ -461,16 +475,24 @@ class _WelcomePage extends State<JChat> {
     Navigator.pushNamed(context, "/captcha", arguments: data);
   }
 
-  void resetPassword() {
+  void resetPassword(BuildContext context) {
     if (emailController.text.isEmpty) {
       setState(() {
         error = "Enter the email of the account";
       });
       return;
     }
+    if (passwordController.text.isEmpty) {
+      setState(() {
+        error = "Enter the new password of the account";
+      });
+      return;
+    }
+    data["password_on_success_path"] = "/captcha";
+    data["password_on_fail_path"] = "/welcome";
     data["on_success_path"] = "/welcome";
     data["on_fail_path"] = "/welcome";
-    data["forgetPassword"] = false;
+    data["forgetPassword_password"] = passwordController.text;
     data["email"] = emailController.text;
     Navigator.pushNamed(context, "/verify", arguments: data);
   }
@@ -601,7 +623,7 @@ class _WelcomePage extends State<JChat> {
                             child: const Text('Forgot password?',
                             style: TextStyle(color: Colors.blue)),
                             onTap: () async {
-                              resetPassword();
+                              resetPassword(context);
                             }
                           ),
                         ),
@@ -621,7 +643,7 @@ class _WelcomePage extends State<JChat> {
                               });
                               return;
                             }
-                            loginWithEmailAndPassword();
+                            loginWithEmailAndPassword(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.cyan,

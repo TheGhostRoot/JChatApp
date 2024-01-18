@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'dart:io';
+import 'package:email_sender/email_sender.dart';
+import 'package:jchatapp/account/accountManager.dart';
 import 'package:jchatapp/requestHandler.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -16,7 +18,7 @@ import 'package:video_player/video_player.dart';
 class ProfileScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
 
-  ProfileScreen(Map<dynamic, dynamic> given_data) {
+  ProfileScreen(Map<dynamic, dynamic> given_data, {super.key}) {
     data = given_data;
   }
 
@@ -58,6 +60,10 @@ class ProfileHome extends State<ProfileScreen> {
   var nameController = TextEditingController();
   var statsController = TextEditingController();
   var aboutMeController = TextEditingController();
+  var emailController = TextEditingController();
+
+  String emailError = "";
+  String emailSuccess= "";
 
   void setupPfpVideo(File? file) {
     if (videoPlayerControllerPfp == null) {
@@ -245,6 +251,37 @@ class ProfileHome extends State<ProfileScreen> {
         setState(() {
           banner_widget = widget;
         });
+
+        if (data.containsKey("newEmail") && data.containsKey("captcha_stats") && data.containsKey("email")) {
+          if (data["captcha_stats"]) {
+            Map<dynamic, dynamic> changes = {};
+            changes["modif"] = "email";
+            changes["email"] = data["newEmail"];
+
+            if (await AccountManager.updateAccount(changes)) {
+              setState(() {
+                emailSuccess = "Successfully changed email";
+              });
+
+            } else {
+              setState(() {
+                emailError = "Failed to change email";
+              });
+            }
+          } else {
+            setState(() {
+              emailError = "Failed to verify";
+            });
+          }
+
+          data.remove("captcha_stats");
+          data.remove("newEmail");
+          data.remove("email");
+          data.remove("verify_on_success_path");
+          data.remove("verify_on_fail_path");
+          data.remove("on_success_path");
+          data.remove("on_fail_path");
+        }
       });
     }
 
@@ -263,9 +300,6 @@ class ProfileHome extends State<ProfileScreen> {
   }
 
   ProfileHome(Map<dynamic, dynamic> given_data) {
-    // 0 = offline
-    // 1 = online
-    // 2 = ignore
     data = given_data;
   }
 
@@ -274,6 +308,7 @@ class ProfileHome extends State<ProfileScreen> {
     nameController.dispose();
     statsController.dispose();
     aboutMeController.dispose();
+    emailController.dispose();
     if (videoPlayerControllerBanner != null) {
       videoPlayerControllerBanner!.dispose();
     }
@@ -435,6 +470,7 @@ class ProfileHome extends State<ProfileScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -446,6 +482,7 @@ class ProfileHome extends State<ProfileScreen> {
           Stack(children: [
             Center(
               child: Container(
+                padding: const EdgeInsets.only(top: 5),
                   color: const Color.fromRGBO(70, 70, 70, 1),
                   width: 700,
                   height: 300,
@@ -634,13 +671,49 @@ class ProfileHome extends State<ProfileScreen> {
                     },
                   ))),
           const SizedBox(height: 20),
+          Text(emailSuccess, style: const TextStyle(color: Colors.green)),
+          Text(emailError, style: const TextStyle(color: Colors.red)),
+          const SizedBox(height: 10),
+          Center(
+               child: Container(
+                  width: 400,
+                  decoration: const BoxDecoration(
+                      color: Color.fromRGBO(50, 50, 50, 1),
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(10.0),
+                        top: Radius.circular(10.0),
+                      )),
+                  child: TextField(
+                    controller: emailController,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0)),
+                        hintText: 'New Email',
+                        hintStyle: const TextStyle(color: Colors.white),
+                        labelText: "New Email",
+                        labelStyle: const TextStyle(color: Colors.white)),
+                  ))),
+          const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () async {
-              // TODO add 2fa
-              data["on_success_path"] = "/2fa";
+            onPressed: () {
+              if (emailController.text.isEmpty || !EmailSender().checkEmail(emailController.text)) {
+                setState(() {
+                  emailError = "Enter the new email";
+                });
+                return;
+              }
+              if (ClientAPI.user_email.isEmpty) {
+                return;
+              }
+              data["verify_on_success_path"] = "/captcha";
+              data["verify_on_fail_path"] = "/home";
+              data["on_success_path"] = "/home";
               data["on_fail_path"] = "/home";
-              data["2fa"] = true;
-              Navigator.pushNamed(context, "/2fa", arguments: data);
+              data["newEmail"] = emailController.text;
+              data["email"] = ClientAPI.user_email;
+              Navigator.of(context, rootNavigator: true).pushNamed("/verify");
             },
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.cyan,

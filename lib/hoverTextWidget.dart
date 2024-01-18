@@ -9,7 +9,7 @@ class HoverText extends StatefulWidget {
 
   final bool isRow;
 
-  HoverText({required this.child, required this.text, required this.h, required this.w, required this.isRow});
+  const HoverText({super.key, required this.child, required this.text, required this.h, required this.w, required this.isRow});
 
   @override
   _HoverTextState createState() => _HoverTextState();

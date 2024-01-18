@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:jchatapp/account/accountManager.dart';
@@ -8,7 +7,7 @@ import 'package:jchatapp/main.dart';
 class AccountRegisterScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
 
-  AccountRegisterScreen(Map<dynamic, dynamic> given_data) {
+  AccountRegisterScreen(Map<dynamic, dynamic> given_data, {super.key}) {
     data = given_data;
   }
 

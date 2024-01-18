@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jchatapp/captcha/captchaManager.dart';
 import 'package:jchatapp/main.dart';
@@ -10,7 +9,7 @@ import 'package:jchatapp/main.dart';
 class CaptchaScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
 
-  CaptchaScreen(Map<dynamic, dynamic> given_data) {
+  CaptchaScreen(Map<dynamic, dynamic> given_data, {super.key}) {
     data = given_data;
   }
 
@@ -26,8 +25,6 @@ class CaptchaHome extends State<CaptchaScreen> {
 
   Timer? _timer;
   int _start = ClientAPI.captcha_time;
-
-  Visibility vis = const Visibility(child: SizedBox.shrink());
 
   void startTimer() {
     const oneSec = Duration(seconds: 1);
@@ -46,6 +43,8 @@ class CaptchaHome extends State<CaptchaScreen> {
       },
     );
   }
+
+  Visibility vis = const Visibility(child: SizedBox.shrink());
 
   CaptchaHome(Map<dynamic, dynamic> given_data) {
     data = given_data;
@@ -154,6 +153,20 @@ class CaptchaHome extends State<CaptchaScreen> {
               ),
             ),
           ),
+              const SizedBox(height: 10.0),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, data["on_fail_path"], arguments: data);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyan,
+                  minimumSize: const Size(100, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                ),
+                child: const Text('Go Back', style: TextStyle(fontSize: 15.0)),
+              )
         ])),
       ),
     );
