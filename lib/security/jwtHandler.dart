@@ -34,6 +34,7 @@ class JwtHandle {
     } catch (e) {
       claims = null;
     }
+
     return claims;
   }
 

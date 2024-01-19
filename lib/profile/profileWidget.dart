@@ -44,6 +44,7 @@ class ProfileHome extends State<ProfileScreen> {
   late Widget pfp_widget;
   late Widget banner_widget;
 
+  late Widget BadgeWidget;
   late Widget SaveWidget;
 
   int maxCharactersPerLine = 37;
@@ -63,7 +64,7 @@ class ProfileHome extends State<ProfileScreen> {
   var emailController = TextEditingController();
 
   String emailError = "";
-  String emailSuccess= "";
+  String emailSuccess = "";
 
   void setupPfpVideo(File? file) {
     if (videoPlayerControllerPfp == null) {
@@ -237,6 +238,8 @@ class ProfileHome extends State<ProfileScreen> {
     statsController.text = ClientAPI.user_stats.substring(1);
     aboutMeController.text = ClientAPI.user_about_me;
 
+    setBadges();
+
     setState(() {
       SaveWidget = getSaveButton();
     });
@@ -318,29 +321,67 @@ class ProfileHome extends State<ProfileScreen> {
     super.dispose();
   }
 
-  List<Widget> getBadges() {
-    List<Widget> allBadges = [];
-    var UserBadges = ClientAPI.user_badges;
-    if (UserBadges.isEmpty || !UserBadges.containsKey("badges")) {
-      return allBadges;
+  Widget getSingleBadge(Map<dynamic, dynamic> badge) {
+    String name = badge["name"] as String;
+
+    // Calculate the double value based on the string length
+    double result = 20.0 - name.length.toDouble();
+
+    // Ensure the result is not negative
+    result = result < 0.0 ? 0.0 : result;
+
+    // Set a minimum value of 10.0
+    result = result < 10.0 ? 10.0 : result;
+    return Row(children: [const SizedBox(width: 30, height: 80), Column(children: [
+      CircleAvatar(
+        radius: 25.0,
+        backgroundColor: const Color.fromRGBO(70, 70, 70, 1),
+        backgroundImage: AssetImage(badge["icon"]),
+      ),
+      Text(name, style: TextStyle(color: Colors.white, fontSize: result))])]);
+  }
+
+
+  void setBadges() {
+    List<Widget> columnBadges = [];
+    var userBadges = ClientAPI.user_badges;
+
+    if (userBadges.isEmpty || !userBadges.containsKey("badges")) {
+      BadgeWidget = const SingleChildScrollView();
+      return;
     }
+
+    List<Widget> rowBadges = [];
+    int badgesPerRow = 5;
 
     // badges: [{"name": "TEXT", "icon": "name of asset"}, {...}]
 
-    for (Map<dynamic, dynamic> badge
-        in (UserBadges["badges"] as List<dynamic>)) {
-      allBadges.add(Column(children: [
-        CircleAvatar(
-          radius: 15.0,
-          backgroundColor: const Color.fromRGBO(70, 70, 70, 1),
-          backgroundImage: AssetImage(badge["icon"]),
-        ),
-        Text(badge["name"], style: const TextStyle(color: Colors.white)),
-      ]));
-      allBadges.add(const SizedBox(width: 10));
+    for (Map<dynamic, dynamic> badge in (userBadges["badges"] as List<dynamic>)) {
+      rowBadges.add(getSingleBadge(badge));
+
+      if (rowBadges.length == badgesPerRow) {
+        // Add a row of badges to the column
+        columnBadges.add(Row(
+          //mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.from(rowBadges), // Adjust spacing here
+        ));
+        rowBadges.clear(); // Clear badges for the next row
+      }
     }
-    return allBadges;
+
+    if (rowBadges.isNotEmpty) {
+      // If there are remaining badges, add the last row
+      columnBadges.add(Row(
+        //mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.from(rowBadges), // Adjust spacing here
+      ));
+    }
+
+    BadgeWidget = SingleChildScrollView(
+      child: Column(children: columnBadges),
+    );
   }
+
 
   Future<Widget> getBannerImageFromServers() async {
     String? img = await Requests.getProfileBannerBase64Image(headers: ClientAPI.getProfileHeaders());
@@ -566,12 +607,26 @@ class ProfileHome extends State<ProfileScreen> {
                             style: TextStyle(color: Colors.white))),
                   ],
                 )),
-            Positioned(
-              left: MediaQuery.of(context).size.width * 0.5 - 350,
-              top: 300,
-              child: Row(children: getBadges()),
-            ),
           ]),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Center(child:
+              Container(
+                //height: bigBlack,
+                padding: const EdgeInsets.only(bottom: 30),
+                //width: Platform.isAndroid || Platform.isIOS ? 300 : 500,
+                decoration: const BoxDecoration(
+                  color: Color.fromRGBO(50, 50, 50, 1),
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(20.0),
+                    top: Radius.circular(20.0),
+                  ),
+                ),
+                child: Column(children: [const Text("Badges", style: TextStyle(color: Colors.white, fontSize: 20)), BadgeWidget])
+            )
+          ),
+          ),
+
           const SizedBox(height: 20),
           Center(
               child: Container(
@@ -594,6 +649,7 @@ class ProfileHome extends State<ProfileScreen> {
                         labelText: "Name",
                         labelStyle: const TextStyle(color: Colors.white)),
                   ))),
+          const SizedBox(height: 20),
           Center(
               child: Container(
                   width: 400,

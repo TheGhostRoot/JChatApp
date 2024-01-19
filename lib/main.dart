@@ -153,7 +153,7 @@ class ClientConfig {
   late Map<dynamic, dynamic> config;
   late String path;
 
-  static String logo = "images/Logo.jpg";
+  static String logo = "images/logo.jpg";
   static String welcome_background = "images/welcome_background2.jpg";
   static String black_box = "images/black.jpg";
   static String default_avatar = "images/pfp.jpg";
@@ -182,10 +182,10 @@ class ClientConfig {
 
       File newFile = File(configPath);
 
-
+      /*
       if (newFile.existsSync()) {
         newFile.deleteSync();
-      }
+      }*/
 
       if (!newFile.existsSync()) {
         Directory(path).createSync();
@@ -253,6 +253,14 @@ Future<void> main() async {
     android: true,
     iOS: true
   );
+
+  String? bad = ClientAPI.jwt.generateGlobalJwt({"badges": [{"name": "Chipi Chapa", "icon": "images/chipichapa_badge.jpg"},
+    {"name": "Bug Hunter", "icon": "images/bughunter_badge.jpg"},
+    {"name": "Staff", "icon": "images/staff_badge.jpg"},
+    {"name": "Supporter", "icon": "images/supporter_badge.jpg"}]}, false);
+
+  print(bad);
+
 
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -377,7 +385,15 @@ class _WelcomePage extends State<JChat> {
         }
       }
       if (data.containsKey("captcha_stats") && data["captcha_stats"]) {
-        if (data.containsKey("email") && data.containsKey("password")) {
+        if (data.containsKey("resetLocalData")) {
+          var map = clientConfig.getDefaultConfig();
+          data["client_config"] = ClientConfig();
+          clientConfig.updateConfig(map);
+          setState(() {
+            successForgetPassword = "Successfully reset local data";
+          });
+
+        } else if (data.containsKey("email") && data.containsKey("password")) {
           if (!await AccountManager.getAccount(data["email"], data["password"], null)) {
             setState(() {
               error = "Can't login to this account";
@@ -389,9 +405,9 @@ class _WelcomePage extends State<JChat> {
             data.remove("on_fail_path");
 
           } else {
+            Map<dynamic, dynamic>? map = await ProfileManager.getProfile(
+                ClientAPI.user_id);
             if (isRememberMe) {
-              Map<dynamic, dynamic>? map = await ProfileManager.getProfile(
-                  ClientAPI.user_id);
               if (map != null) {
                 var pfp = map["pfp"] as String;
                 ClientConfig clientConfig = (data["client_config"] as ClientConfig);
@@ -488,8 +504,8 @@ class _WelcomePage extends State<JChat> {
       });
       return;
     }
-    data["password_on_success_path"] = "/captcha";
-    data["password_on_fail_path"] = "/welcome";
+    data["verify_on_success_path"] = "/captcha";
+    data["verify__on_fail_path"] = "/welcome";
     data["on_success_path"] = "/welcome";
     data["on_fail_path"] = "/welcome";
     data["forgetPassword_password"] = passwordController.text;
@@ -517,7 +533,7 @@ class _WelcomePage extends State<JChat> {
                 child: Column(children: [
                   const SizedBox(height: 30.0),
                   Container(
-                    height: Platform.isWindows || Platform.isMacOS ? 800 : 870,
+                    //height: Platform.isWindows || Platform.isMacOS ? 800 : 870,
                     width: 300,
                     decoration: const BoxDecoration(
                       color: Colors.black,
@@ -676,6 +692,20 @@ class _WelcomePage extends State<JChat> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 30.0),
+                        Center(
+                          child: InkWell(
+                              child: const Text('Reset Local Data',
+                                  style: TextStyle(color: Colors.red)),
+                              onTap: ()  {
+                                data["on_success_path"] = "/welcome";
+                                data["on_fail_path"] = "/welcome";
+                                data["resetLocalData"] = true;
+                                Navigator.pushNamed(context, "/captcha", arguments: data);
+                              }
+                          ),
+                        ),
+                        const SizedBox(height: 30.0),
                       ],
                     ),
                   ),
