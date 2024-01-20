@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'dart:io';
+import 'dart:ui';
 import 'package:email_sender/email_sender.dart';
 import 'package:jchatapp/account/accountManager.dart';
 import 'package:jchatapp/requestHandler.dart';
@@ -321,7 +322,7 @@ class ProfileHome extends State<ProfileScreen> {
     super.dispose();
   }
 
-  Widget getSingleBadge(Map<dynamic, dynamic> badge) {
+  Widget getSingleBadge(Map<dynamic, dynamic> badge, bool nextToOther) {
     String name = badge["name"] as String;
 
     // Calculate the double value based on the string length
@@ -332,13 +333,13 @@ class ProfileHome extends State<ProfileScreen> {
 
     // Set a minimum value of 10.0
     result = result < 10.0 ? 10.0 : result;
-    return Row(children: [const SizedBox(width: 30, height: 80), Column(children: [
+    return Row(children: [nextToOther ? Container() : const SizedBox(width: 20, height: 80), Column(children: [
       CircleAvatar(
         radius: 25.0,
         backgroundColor: const Color.fromRGBO(70, 70, 70, 1),
         backgroundImage: AssetImage(badge["icon"]),
       ),
-      Text(name, style: TextStyle(color: Colors.white, fontSize: result))])]);
+      Text(name, style: TextStyle(color: Colors.white, fontSize: result))]), const SizedBox(width: 20, height: 80)]);
   }
 
 
@@ -352,12 +353,13 @@ class ProfileHome extends State<ProfileScreen> {
     }
 
     List<Widget> rowBadges = [];
-    int badgesPerRow = 5;
+    double width = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
+    int badgesPerRow = width > 800 ? 5 : (width > 700 ? 3 : 2);
 
     // badges: [{"name": "TEXT", "icon": "name of asset"}, {...}]
 
     for (Map<dynamic, dynamic> badge in (userBadges["badges"] as List<dynamic>)) {
-      rowBadges.add(getSingleBadge(badge));
+      rowBadges.add(getSingleBadge(badge, rowBadges.isNotEmpty));
 
       if (rowBadges.length == badgesPerRow) {
         // Add a row of badges to the column
@@ -442,6 +444,7 @@ class ProfileHome extends State<ProfileScreen> {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
           initialDirectory: "./",
+          type: FileType.custom,
           dialogTitle: isPfp ? "Choose your Avatar" : "Choose your Banner",
           allowedExtensions: ["mp4", "jpg"]);
 
@@ -613,7 +616,7 @@ class ProfileHome extends State<ProfileScreen> {
             child: Center(child:
               Container(
                 //height: bigBlack,
-                padding: const EdgeInsets.only(bottom: 30),
+                padding: const EdgeInsets.all(10),
                 //width: Platform.isAndroid || Platform.isIOS ? 300 : 500,
                 decoration: const BoxDecoration(
                   color: Color.fromRGBO(50, 50, 50, 1),
@@ -638,6 +641,7 @@ class ProfileHome extends State<ProfileScreen> {
                         top: Radius.circular(10.0),
                       )),
                   child: TextField(
+                    textInputAction: TextInputAction.next,
                     controller: nameController,
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white, fontSize: 20),
@@ -660,6 +664,7 @@ class ProfileHome extends State<ProfileScreen> {
                         top: Radius.circular(10.0),
                       )),
                   child: TextField(
+                    textInputAction: TextInputAction.next,
                     controller: statsController,
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white),
@@ -688,6 +693,7 @@ class ProfileHome extends State<ProfileScreen> {
                         top: Radius.circular(10.0),
                       )),
                   child: TextField(
+                    textInputAction: TextInputAction.done,
                     keyboardType: TextInputType.multiline,
                     controller: aboutMeController,
                     maxLines: 7,

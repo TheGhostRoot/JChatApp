@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:email_sender/email_sender.dart';
 import 'package:flutter/material.dart';
 import 'package:jchatapp/account/accountManager.dart';
 import 'package:jchatapp/main.dart';
@@ -63,13 +64,15 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
     }
   }
 
-  void registerUser()  {
+  void registerUser(BuildContext context)  {
     data["on_success_path"] = "/register";
     data["on_fail_path"] = "/register";
+    data["verify_on_success_path"] = "/captcha";
+    data["verify_on_fail_path"] = "/register";
     data["name"] = nameController.text;
     data["password"] = passwordController.text;
     data["email"] = emailController.text;
-    Navigator.pushNamed(context, "/captcha", arguments: data);
+    Navigator.pushNamed(context, "/verify", arguments: data);
   }
 
   @override
@@ -122,6 +125,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                             SizedBox(
                               width: 200.0,
                               child: TextField(
+                                  textInputAction: TextInputAction.next,
                                   controller: nameController,
                                   style: const TextStyle(color: Colors.white),
                                   decoration: InputDecoration(
@@ -137,6 +141,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                             SizedBox(
                               width: 200.0,
                               child: TextField(
+                                textInputAction: TextInputAction.next,
                                 controller: emailController,
                                 style: const TextStyle(color: Colors.white),
                                 decoration: InputDecoration(
@@ -202,6 +207,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                                     }
                                   }
                                 },
+                                textInputAction: TextInputAction.done,
                                 controller: passwordController,
                                 style: const TextStyle(color: Colors.white),
                                 obscureText: !_passwordVisible,
@@ -249,9 +255,9 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                                   return;
                                 }
 
-                                if (emailController.text.isEmpty) {
+                                if (emailController.text.isEmpty || !EmailSender().checkEmail(emailController.text)) {
                                   setState(() {
-                                    error = "Email required";
+                                    error = "Valid email required";
                                   });
                                   return;
                                 }
@@ -263,7 +269,7 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                                   return;
                                 }
 
-                                registerUser();
+                                registerUser(context);
 
                               },
                               style: ElevatedButton.styleFrom(

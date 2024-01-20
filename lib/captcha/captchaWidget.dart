@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
-import 'dart:io' show Platform;
+//import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:jchatapp/captcha/captchaManager.dart';
@@ -46,7 +46,13 @@ class CaptchaHome extends State<CaptchaScreen> {
 
   Visibility vis = const Visibility(child: SizedBox.shrink());
 
+  late double w;
+  late double h;
+
   CaptchaHome(Map<dynamic, dynamic> given_data) {
+    var size = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize;
+    w = size.width;
+    h = size.height;
     data = given_data;
     vis = const Visibility(
       visible: false,
@@ -64,7 +70,7 @@ class CaptchaHome extends State<CaptchaScreen> {
         vis = Visibility(
             visible: captcha_base64 != null,
             child: captcha_base64 != null
-                ? DecoratedBox(
+                ?  DecoratedBox(
               decoration: BoxDecoration(
                 image: DecorationImage(
                   fit: BoxFit.fill,
@@ -109,7 +115,8 @@ class CaptchaHome extends State<CaptchaScreen> {
           Text(error, style: const TextStyle(color: Colors.red)),
           const SizedBox(height: 50.0),
           SizedBox(
-            width: Platform.isAndroid || Platform.isIOS ? 350 : 1000,
+            //width: Platform.isAndroid || Platform.isIOS ? 350 : 1000,
+            width: MediaQuery.of(context).orientation == Orientation.portrait ? h / 5 : w / 3,
             height: 200,
             child: vis,
           ),

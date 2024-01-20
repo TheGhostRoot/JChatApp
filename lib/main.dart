@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:email_sender/email_sender.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:image/image.dart' as img;
@@ -570,6 +571,7 @@ class _WelcomePage extends State<JChat> {
                         SizedBox(
                             width: 200.0,
                             child: TextField(
+                              textInputAction: TextInputAction.next,
                               controller: emailController,
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
@@ -585,6 +587,7 @@ class _WelcomePage extends State<JChat> {
                         const SizedBox(height: 20.0),
                         SizedBox(width: 200.0,
                             child: TextField(
+                              textInputAction: TextInputAction.done,
                               obscureText: !_passwordVisible,
                               style: const TextStyle(color: Colors.white),
                               controller: passwordController,
@@ -646,9 +649,9 @@ class _WelcomePage extends State<JChat> {
                         const SizedBox(height: 20.0),
                         ElevatedButton(
                           onPressed: () {
-                            if (emailController.text.isEmpty) {
+                            if (emailController.text.isEmpty || !EmailSender().checkEmail(emailController.text)) {
                               setState(() {
-                                error = "Email required";
+                                error = "Valid email required";
                               });
                               return;
                             }
