@@ -168,8 +168,8 @@ class ClientConfig {
     conf["remember_me"]["pfp"] = null;
     conf["remember_me"]["id"] = 0;
 
-    conf["pfp-is-video"] = false;
-    conf["banner-is-video"] = false;
+    //conf["pfp-is-video"] = false;
+    //conf["banner-is-video"] = false;
 
     return conf;
   }
@@ -182,11 +182,6 @@ class ClientConfig {
       configPath = "$path\\config.txt";
 
       File newFile = File(configPath);
-
-      /*
-      if (newFile.existsSync()) {
-        newFile.deleteSync();
-      }*/
 
       if (!newFile.existsSync()) {
         Directory(path).createSync();
@@ -307,8 +302,11 @@ class _WelcomePage extends State<JChat> {
         videoPlayerControllerPfp.play();
 
 
-        pfp_widget = CircleAvatar(
-            radius: pfpRadius, child: VideoPlayer(videoPlayerControllerPfp));
+        pfp_widget = SizedBox(height: pfpRadius * 2, width: pfpRadius * 2, child: ClipRRect(
+          borderRadius: BorderRadius.circular(60.0),
+          clipBehavior: Clip.hardEdge,
+          child: VideoPlayer(videoPlayerControllerPfp), // It's highly advisable to use this behavior to improve performance.
+        ));
   }
 
   @override
@@ -406,8 +404,7 @@ class _WelcomePage extends State<JChat> {
             data.remove("on_fail_path");
 
           } else {
-            Map<dynamic, dynamic>? map = await ProfileManager.getProfile(
-                ClientAPI.user_id);
+            Map<dynamic, dynamic>? map = await ProfileManager.getProfile(ClientAPI.user_id);
             if (isRememberMe) {
               if (map != null) {
                 var pfp = map["pfp"] as String;
@@ -430,13 +427,18 @@ class _WelcomePage extends State<JChat> {
 
             }
 
-            data.remove("captcha_stats");
-            data.remove("email");
-            data.remove("password");
-            data.remove("on_success_path");
-            data.remove("on_fail_path");
+            if (map != null) {
+              data["pfp-is-video"] = (map["pfp"] as String).startsWith("video;");
+              data["banner-is-video"] = (map["banner"] as String).startsWith("video;");
 
-            Navigator.pushNamed(context, "/home", arguments: data);
+              data.remove("captcha_stats");
+              data.remove("email");
+              data.remove("password");
+              data.remove("on_success_path");
+              data.remove("on_fail_path");
+
+              Navigator.pushNamed(context, "/home", arguments: data);
+            }
           }
 
         } else if (data.containsKey("remember_me_id")) {
@@ -456,8 +458,13 @@ class _WelcomePage extends State<JChat> {
             data.remove("on_success_path");
             data.remove("on_fail_path");
 
-            await ProfileManager.getProfile(ClientAPI.user_id);
-            Navigator.pushNamed(context, "/home", arguments: data);
+            Map<dynamic, dynamic>? map =  await ProfileManager.getProfile(ClientAPI.user_id);
+            if (map  != null) {
+              data["pfp-is-video"] = (map["pfp"] as String).startsWith("video;");
+              data["banner-is-video"] = (map["banner"] as String).startsWith("video;");
+
+              Navigator.pushNamed(context, "/home", arguments: data);
+            }
           }
         }
       }

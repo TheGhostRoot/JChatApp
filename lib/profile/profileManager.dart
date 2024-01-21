@@ -54,6 +54,7 @@ class ProfileManager {
 
     bool? stats;
 
+
     if (changes.containsKey("banner")) {
       String banner = changes["banner"] as String;
       if (banner.startsWith("video;")) {
@@ -71,7 +72,6 @@ class ProfileManager {
       }
 
       stats = data["stats"];
-      changes.remove("banner");
     }
 
     if (changes.containsKey("pfp")) {
@@ -97,10 +97,9 @@ class ProfileManager {
       } else {
         stats = stats && data["stats"];
       }
-      changes.remove("pfp");
     }
 
-    if (changes.isNotEmpty) {
+    if (changes.containsKey("about_me") || changes.containsKey("stats") || changes.containsKey("name")) {
       String? authData = ClientAPI.jwt.generateUserJwt(changes);
       if (authData == null) {
         if (stats != null) {

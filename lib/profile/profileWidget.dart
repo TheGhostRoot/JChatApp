@@ -9,12 +9,10 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:jchatapp/hoverTextWidget.dart';
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/navigationWidget.dart';
 import 'package:jchatapp/profile/profileManager.dart';
 import 'package:video_player/video_player.dart';
-//import 'package:video_player_media_kit/video_player_media_kit.dart';
 
 class ProfileScreen extends StatefulWidget {
   late Map<dynamic, dynamic> data;
@@ -68,20 +66,23 @@ class ProfileHome extends State<ProfileScreen> {
   String emailSuccess = "";
 
   void setupPfpVideo(File? file) {
-    if (videoPlayerControllerPfp == null) {
       if (file != null) {
         videoPlayerControllerPfp = VideoPlayerController.file(file);
+
       } else {
         videoPlayerControllerPfp = VideoPlayerController.networkUrl(
             Uri.parse(ClientAPI.pfpUrl),
             httpHeaders: ClientAPI.getProfileHeaders() ?? {});
       }
 
+      videoPlayerControllerPfp!.addListener(() {
+        setState(() {});
+      });
+
       videoPlayerControllerPfp!.setLooping(true);
       videoPlayerControllerPfp!.setVolume(0);
       videoPlayerControllerPfp!.initialize().then((_) => setState(() {}));
       videoPlayerControllerPfp!.play();
-    }
 
     /*
     pfp_widget = AspectRatio(
@@ -95,52 +96,49 @@ class ProfileHome extends State<ProfileScreen> {
     );
 
      */
-    pfp_widget = CircleAvatar(
-        radius: pfpRadius, child: VideoPlayer(videoPlayerControllerPfp!));
+    pfp_widget = SizedBox(height: pfpRadius * 2, width: pfpRadius * 2, child: ClipRRect(
+      borderRadius: BorderRadius.circular(60.0),
+      clipBehavior: Clip.hardEdge,
+      child: VideoPlayer(videoPlayerControllerPfp!), // It's highly advisable to use this behavior to improve performance.
+    ));
+
     //(radius: 50.0, backgroundColor: const Color.fromRGBO(70, 70, 70, 1), child: VideoPlayer(videoPlayerControllerPfp!));
   }
 
   void setupPfpVideoWithState(File? file) {
     setState(() {
-      if (videoPlayerControllerPfp == null) {
         if (file != null) {
           videoPlayerControllerPfp = VideoPlayerController.file(file);
+
         } else {
           videoPlayerControllerPfp = VideoPlayerController.networkUrl(
               Uri.parse(ClientAPI.pfpUrl),
               httpHeaders: ClientAPI.getProfileHeaders() ?? {});
         }
-        /*
+
         videoPlayerControllerPfp!.addListener(() {
           setState(() {});
         });
 
-         */
+
         videoPlayerControllerPfp!.setLooping(true);
         videoPlayerControllerPfp!.setVolume(0);
         videoPlayerControllerPfp!.initialize().then((_) => setState(() {}));
         videoPlayerControllerPfp!.play();
-      }
 
-      /*
-      pfp_widget = AspectRatio(
-        aspectRatio: videoPlayerControllerPfp!.value.aspectRatio,
-        child: Stack(
-          children: <Widget>[
-            VideoPlayer(videoPlayerControllerPfp!),
-            //VideoProgressIndicator(videoPlayerControllerPfp!, allowScrubbing: true),
-          ],
-        ),
-      );
-       */
+      pfp_widget = SizedBox(height: pfpRadius * 2, width: pfpRadius * 2, child: ClipRRect(
+        borderRadius: BorderRadius.circular(60.0),
+        clipBehavior: Clip.hardEdge,
+        child: VideoPlayer(videoPlayerControllerPfp!), // It's highly advisable to use this behavior to improve performance.
+      ));
 
-      pfp_widget = CircleAvatar(
-          radius: pfpRadius, child: VideoPlayer(videoPlayerControllerPfp!));
+
+      /*pfp_widget = CircleAvatar(
+          radius: pfpRadius, child: VideoPlayer(videoPlayerControllerPfp!));*/
     });
   }
 
   void setupBannerVideo(File? file) {
-    if (videoPlayerControllerBanner == null) {
       if (file != null) {
         videoPlayerControllerBanner = VideoPlayerController.file(file);
       } else {
@@ -149,68 +147,15 @@ class ProfileHome extends State<ProfileScreen> {
             httpHeaders: ClientAPI.getProfileHeaders() ?? {});
       }
 
-      videoPlayerControllerBanner!.setLooping(true);
-      videoPlayerControllerBanner!.setVolume(0);
-      videoPlayerControllerBanner!.initialize().then((_) => setState(() {}));
-      videoPlayerControllerBanner!.play();
-    }
-
-    /*
-    banner_widget = AspectRatio(
-      aspectRatio: videoPlayerControllerBanner!.value.aspectRatio,
-      child: Stack(
-        children: <Widget>[
-          VideoPlayer(videoPlayerControllerBanner!),
-          //VideoProgressIndicator(videoPlayerControllerBanner!, allowScrubbing: true),
-        ],
-      ),
-    );
-
-     */
-
-    banner_widget = Container(
-        decoration: const BoxDecoration(
-            color: Color.fromRGBO(70, 70, 70, 1),
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20.0),
-              top: Radius.circular(20.0),
-            )),
-        child: VideoPlayer(videoPlayerControllerBanner!));
-  }
-
-  void setupBannerVideoWithState(File? file) {
-    setState(() {
-      if (videoPlayerControllerBanner == null) {
-        if (file != null) {
-          videoPlayerControllerBanner = VideoPlayerController.file(file);
-        } else {
-          videoPlayerControllerBanner = VideoPlayerController.networkUrl(
-              Uri.parse(ClientAPI.bannerUrl),
-              httpHeaders: ClientAPI.getProfileHeaders() ?? {});
-        }
-      }
       videoPlayerControllerBanner!.addListener(() {
         setState(() {});
       });
 
       videoPlayerControllerBanner!.setLooping(true);
       videoPlayerControllerBanner!.setVolume(0);
-      videoPlayerControllerBanner!.initialize();
+      videoPlayerControllerBanner!.initialize().then((_) => setState(() {}));
       videoPlayerControllerBanner!.play();
 
-      /*
-      banner_widget = AspectRatio(
-        aspectRatio: videoPlayerControllerBanner!.value.aspectRatio,
-        child: Stack(
-          children: <Widget>[
-            VideoPlayer(videoPlayerControllerBanner!),
-            //VideoProgressIndicator(videoPlayerControllerBanner!, allowScrubbing: true),
-          ],
-        ),
-      );
-
-
-*/
       banner_widget = Container(
           decoration: const BoxDecoration(
               color: Color.fromRGBO(70, 70, 70, 1),
@@ -218,7 +163,44 @@ class ProfileHome extends State<ProfileScreen> {
                 bottom: Radius.circular(20.0),
                 top: Radius.circular(20.0),
               )),
-          child: VideoPlayer(videoPlayerControllerBanner!));
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(60.0),
+            clipBehavior: Clip.hardEdge,
+            child: VideoPlayer(videoPlayerControllerBanner!), // It's highly advisable to use this behavior to improve performance.
+          ));
+  }
+
+  void setupBannerVideoWithState(File? file){
+    setState(() {
+        if (file != null) {
+          videoPlayerControllerBanner = VideoPlayerController.file(file);
+
+        } else {
+          videoPlayerControllerBanner = VideoPlayerController.networkUrl(
+              Uri.parse(ClientAPI.bannerUrl),
+              httpHeaders: ClientAPI.getProfileHeaders() ?? {});
+        }
+      videoPlayerControllerBanner!.addListener(() {
+        setState(() {});
+      });
+
+      videoPlayerControllerBanner!.setLooping(true);
+      videoPlayerControllerBanner!.setVolume(0);
+      videoPlayerControllerBanner!.initialize().then((_) => setState(() {}));
+      videoPlayerControllerBanner!.play();
+
+      banner_widget = Container(
+          decoration: const BoxDecoration(
+              color: Color.fromRGBO(70, 70, 70, 1),
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(20.0),
+                top: Radius.circular(20.0),
+              )),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(60.0),
+            clipBehavior: Clip.hardEdge,
+            child: VideoPlayer(videoPlayerControllerBanner!), // It's highly advisable to use this behavior to improve performance.
+          ));
     });
   }
 
@@ -245,7 +227,7 @@ class ProfileHome extends State<ProfileScreen> {
       SaveWidget = getSaveButton();
     });
 
-    if (clientConfig.config["banner-is-video"]) {
+    if (data["banner-is-video"]) {
       setupBannerVideoWithState(null);
 
     } else {
@@ -289,7 +271,7 @@ class ProfileHome extends State<ProfileScreen> {
       });
     }
 
-    if (clientConfig.config["pfp-is-video"]) {
+    if (data["pfp-is-video"]) {
       setupPfpVideoWithState(null);
 
     } else {
@@ -420,6 +402,7 @@ class ProfileHome extends State<ProfileScreen> {
       radius: pfpRadius,
       backgroundImage: Image.memory(base64Decode(img)).image,
     );
+
   }
 
   Future<Widget> getAvatarImageFromServers() async {
@@ -469,19 +452,17 @@ class ProfileHome extends State<ProfileScreen> {
               }
               tempPfpBase64 = "";
               tempPfpFilePath = "video;${f.path}";
-              clientConfig.config["pfp-is-video"] = true;
               setupPfpVideoWithState(f);
+
             } else {
               if (fileBase64 == tempBannerBase64) {
                 return null;
               }
               tempBannerBase64 = "";
               tempBannerFilePath = "video;${f.path}";
-              clientConfig.config["banner-is-video"] = true;
               setupBannerVideoWithState(f);
             }
 
-            clientConfig.updateConfig(clientConfig.config);
             return "";
           } else if (f.path.endsWith(".jpg")) {
             if (fileBase64 == tempPfpBase64 || fileBase64 == tempBannerBase64) {
@@ -491,15 +472,11 @@ class ProfileHome extends State<ProfileScreen> {
             if (isPfp) {
               tempPfpBase64 = fileBase64;
               tempPfpFilePath = f.path;
-              clientConfig.config["pfp-is-video"] = false;
 
             } else {
               tempBannerBase64 = fileBase64;
               tempBannerFilePath = f.path;
-              clientConfig.config["banner-is-video"] = false;
             }
-
-            clientConfig.updateConfig(clientConfig.config);
 
             return base64Encode(f.readAsBytesSync());
           }
@@ -564,16 +541,23 @@ class ProfileHome extends State<ProfileScreen> {
             Positioned(
               left: MediaQuery.of(context).size.width * 0.5 + 25,
               top: 350,
-              child: HoverText(
-                isRow: true,
-                h: 20,
-                w: 50,
-                text: userStatsDropdown,
-                child: CircleAvatar(
+              child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
+                CircleAvatar(
                   radius: 15.0,
                   backgroundColor: stats,
                 ),
-              ),
+                Container(
+                    height: 20,
+                    width: 50,
+                    decoration: const BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(10.0),
+                          top: Radius.circular(10.0),
+                        )
+                    ),
+                    child: Center(child: Text(userStatsDropdown, style: const TextStyle(fontSize: 12.0, color: Colors.white))))
+              ])),
             ),
             Positioned(
                 left: MediaQuery.of(context).size.width * 0.5 + 120,
@@ -838,10 +822,12 @@ class ProfileHome extends State<ProfileScreen> {
                   });
                   if (changes.containsKey("pfp")) {
                     ClientAPI.user_pfp_base64 = tempPfpBase64;
+                    data["pfp-is-video"] = tempPfpFilePath.startsWith("video;");
                   }
 
                   if (changes.containsKey("banner")) {
                     ClientAPI.user_banner_base64 = tempBannerBase64;
+                    data["banner-is-video"] = tempBannerFilePath.startsWith("video;");
                   }
 
                   if (changes.containsKey("about_me")) {

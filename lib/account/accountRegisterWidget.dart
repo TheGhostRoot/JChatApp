@@ -255,6 +255,13 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                                   return;
                                 }
 
+                                if (nameController.text.length > 20) {
+                                  setState(() {
+                                    error = "Max name length 20";
+                                  });
+                                  return;
+                                }
+
                                 if (emailController.text.isEmpty || !EmailSender().checkEmail(emailController.text)) {
                                   setState(() {
                                     error = "Valid email required";
@@ -262,9 +269,23 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                                   return;
                                 }
 
+                                if (emailController.text.length > 50) {
+                                  setState(() {
+                                    error = "Max email length 50";
+                                  });
+                                  return;
+                                }
+
                                 if (passwordController.text.isEmpty) {
                                   setState(() {
                                     error = "Password required";
+                                  });
+                                  return;
+                                }
+
+                                if (passwordController.text.length > 100) {
+                                  setState(() {
+                                    error = "Max password length 100";
                                   });
                                   return;
                                 }
