@@ -14,14 +14,12 @@ class CaptchaScreen extends StatefulWidget {
   }
 
   @override
-  CaptchaHome createState() => CaptchaHome(data);
+  CaptchaHome createState() => CaptchaHome();
 }
 
 class CaptchaHome extends State<CaptchaScreen> {
   String? captcha_base64;
   String error = "";
-
-  late Map<dynamic, dynamic> data;
 
   Timer? _timer;
   int _start = ClientAPI.captcha_time;
@@ -49,11 +47,10 @@ class CaptchaHome extends State<CaptchaScreen> {
   late double w;
   late double h;
 
-  CaptchaHome(Map<dynamic, dynamic> given_data) {
+  CaptchaHome() {
     var size = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize;
     w = size.width;
     h = size.height;
-    data = given_data;
     vis = const Visibility(
       visible: false,
       child: SizedBox.shrink(),
@@ -140,12 +137,12 @@ class CaptchaHome extends State<CaptchaScreen> {
           ElevatedButton(
             onPressed: () async {
               if (_start > 0 && await CaptchaManager.solveCaptcha(captchaController.text)) {
-                data["captcha_stats"] = true;
-                Navigator.pushNamed(context, data["on_success_path"], arguments: data);
+                widget.data["captcha_stats"] = true;
+                Navigator.pushNamed(context, widget.data["on_success_path"], arguments: widget.data);
 
               } else {
-                data["captcha_stats"] = false;
-                Navigator.pushNamed(context, data["on_fail_path"], arguments: data);
+                widget.data["captcha_stats"] = false;
+                Navigator.pushNamed(context, widget.data["on_fail_path"], arguments: widget.data);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -163,7 +160,7 @@ class CaptchaHome extends State<CaptchaScreen> {
               const SizedBox(height: 10.0),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, data["on_fail_path"], arguments: data);
+                  Navigator.pushNamed(context, widget.data["on_fail_path"], arguments: widget.data);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.cyan,

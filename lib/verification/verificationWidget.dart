@@ -251,6 +251,13 @@ class VerificaionHome extends State<VerificationPage> {
 
                   ElevatedButton(
                     onPressed: () async {
+
+                      if (_start <= 0) {
+                        data["captcha_stats"] = false;
+                        Navigator.pushNamed(context, data["verify_on_fail_path"], arguments: data);
+                        return;
+                      }
+
                       String enteredCode = num1Controller.text;
                       enteredCode += num2Controller.text;
                       enteredCode += num3Controller.text;

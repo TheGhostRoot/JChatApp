@@ -248,6 +248,10 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                             const SizedBox(height: 30.0),
                             ElevatedButton(
                               onPressed: () {
+                                setState(() {
+                                  error = "";
+                                  suss = "";
+                                });
                                 if (nameController.text.isEmpty) {
                                   setState(() {
                                     error = "Name required";

@@ -744,6 +744,9 @@ class ProfileHome extends State<ProfileScreen> {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
+              setState(() {
+                emailError = "";
+              });
               if (emailController.text.isEmpty || !EmailSender().checkEmail(emailController.text)) {
                 setState(() {
                   emailError = "Enter the new email";
@@ -778,6 +781,10 @@ class ProfileHome extends State<ProfileScreen> {
           ElevatedButton(
             onPressed: () async {
               // save the changes if any
+              setState(() {
+                suss = "";
+                error = "";
+              });
               Map<dynamic, dynamic> changes = {};
               var mode = (stats == Colors.green
                   ? "1"
