@@ -235,7 +235,9 @@ class ProfileHome extends State<ProfileScreen> {
       Future.delayed(const Duration(microseconds: 1), () async {
         Widget? widget = await getBannerImageFromServers();
         setState(() {
-          banner_widget = widget;
+          if (mounted) {
+            banner_widget = widget;
+          }
         });
 
         if (data.containsKey("newEmail") && data.containsKey("captcha_stats") && data.containsKey("email")) {
@@ -279,7 +281,9 @@ class ProfileHome extends State<ProfileScreen> {
       Future.delayed(const Duration(microseconds: 1), () async {
         Widget? widget = await getAvatarImageFromServers();
         setState(() {
-          pfp_widget = widget;
+          if (mounted) {
+            pfp_widget = widget;
+          }
         });
       });
     }

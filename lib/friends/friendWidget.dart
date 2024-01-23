@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:jchatapp/friends/friendManager.dart';
 
+import '../main.dart';
 import '../navigationWidget.dart';
 
 class FriendsScreen extends StatefulWidget {
@@ -21,6 +24,9 @@ class FriendsHome extends State<FriendsScreen> {
   String error = "";
   String success = "";
 
+  Widget friendRequests = Container();
+  Widget friends = Container();
+
   @override
   void dispose() {
     super.dispose();
@@ -34,12 +40,45 @@ class FriendsHome extends State<FriendsScreen> {
   Future<bool> sendFriendRequest(String name) async {
     Map<dynamic, dynamic> data = {};
     data["modif"] = "new";
-    data["friend_name"] = name;
+    data["friend_name"] = name;krisk
 
     if (await FriendManager.sendFriendRequest(data)) {
       return true;
     }
     return false;
+  }
+
+  void setFriends() {
+
+  }
+
+  Widget getFriendRequestWidget(String name) {
+    return Container(
+        padding: const EdgeInsets.only(top: 5),
+        child: Text(name, style: TextStyle(color: Colors.white, fontSize: 10),),
+        decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(20.0),
+              top: Radius.circular(20.0),
+            )));
+  }
+
+  Future<void> setRequests() async {
+    Map<String, dynamic>? req = await FriendManager.getFriendRequests();
+    if (req == null || req.isEmpty) {
+      setState(() {
+        friendRequests = Container();
+      });
+
+    } else {
+      List<Widget> requests = [];
+      for (var f in req.entries) {
+        requests.add(getFriendRequestWidget(f.key));
+      }
+      setState(() {
+        friendRequests = Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: requests);
+      });
+    }
   }
 
   @override
@@ -52,8 +91,8 @@ class FriendsHome extends State<FriendsScreen> {
           NavigationHome.getTitle(),
           const SizedBox(height: 10,),
 
-          SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const SizedBox(width: 150),
+          SingleChildScrollView(scrollDirection: Axis.horizontal, child: Center(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            //const SizedBox(width: 70),
 
             //const SizedBox(width: 100),
             Column(children: [
@@ -66,6 +105,13 @@ class FriendsHome extends State<FriendsScreen> {
                     if (searchController.text.isEmpty) {
                       setState(() {
                         error = "Enter the name of your friend";
+                      });
+                      return;
+                    }
+
+                    if (searchController.text == ClientAPI.user_name) {
+                      setState(() {
+                        error = "You can't add yourself";
                       });
                       return;
                     }
@@ -97,7 +143,7 @@ class FriendsHome extends State<FriendsScreen> {
 
             Column(children: [
               Container(
-                  width: 300,
+                  width: Platform.isIOS || Platform.isAndroid?  100 : 300,
                   decoration: const BoxDecoration(
                       color: Color.fromRGBO(50, 50, 50, 1),
                       borderRadius: BorderRadius.vertical(
@@ -122,7 +168,43 @@ class FriendsHome extends State<FriendsScreen> {
               Text(success, style: const TextStyle(color: Colors.green)),
             ]),
 
+            const SizedBox(width: 30),
+            Column(children: [
+              ElevatedButton(
+                  onPressed: () async {
+                    setFriends();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(40.0),
+                      ),
+                      padding: const EdgeInsets.all(10)
+                  ),
+                  child:  const Icon(Icons.person)
+              ),
+              const Text("Friends", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+            ]),
+            const SizedBox(width: 30),
+            Column(children: [
+              ElevatedButton(
+                  onPressed: () async {
+                    setRequests();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(40.0),
+                      ),
+                      padding: const EdgeInsets.all(10)
+                  ),
+                  child:  const Icon(Icons.person_search_rounded)
+              ),
+              const Text("Requests", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+            ])
 
+
+            /*
             const SizedBox(width: 90),
 
             Container(height: MediaQuery.of(context).size.height * 0.5 + 160, child: VerticalDivider(color: Colors.black)),
@@ -164,9 +246,12 @@ class FriendsHome extends State<FriendsScreen> {
               ),
               const Text("Requests", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
             ])
+*/
+          ]))),
 
-          ])
-          )
+          friends,
+          friendRequests,
+
         ])));
   }
 }

@@ -44,6 +44,35 @@ class FriendManager {
 
   }
 
+  static Future<Map<String, dynamic>?> getFriendRequests() async {
+    if (ClientAPI.user_id == 0) {
+      return null;
+    }
+
+    String? sess_header = ClientAPI.getSessionHeader();
+    if (sess_header == null) {
+      return null;
+    }
+
+    String? auth_header = ClientAPI.jwt.generateUserJwt({"idk": true});
+    if (auth_header == null) {
+      return null;
+    }
+
+    Map<String, String> header = {};
+    header["friend_requests"] = "1";
+    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_AUTH] = auth_header;
+
+    String? res = await Requests.get("${ClientAPI.server}/friend", headers: header);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+    if (data == null || !data.containsKey("friend_requests") || data["friend_requests"] == null) {
+      return null;
+    }
+
+    return data["friend_requests"] as Map<String, dynamic>;
+  }
+
 
   static Future<bool> sendFriendRequest(Map<dynamic, dynamic> data) async {
     if (ClientAPI.user_id == 0) {
