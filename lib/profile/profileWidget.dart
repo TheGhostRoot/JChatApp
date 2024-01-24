@@ -72,7 +72,7 @@ class ProfileHome extends State<ProfileScreen> {
       } else {
         videoPlayerControllerPfp = VideoPlayerController.networkUrl(
             Uri.parse(ClientAPI.pfpUrl),
-            httpHeaders: ClientAPI.getProfileHeaders() ?? {});
+            httpHeaders: ClientAPI.getProfileHeaders(ClientAPI.user_id) ?? {});
       }
 
       videoPlayerControllerPfp!.addListener(() {
@@ -113,7 +113,7 @@ class ProfileHome extends State<ProfileScreen> {
         } else {
           videoPlayerControllerPfp = VideoPlayerController.networkUrl(
               Uri.parse(ClientAPI.pfpUrl),
-              httpHeaders: ClientAPI.getProfileHeaders() ?? {});
+              httpHeaders: ClientAPI.getProfileHeaders(ClientAPI.user_id) ?? {});
         }
 
         videoPlayerControllerPfp!.addListener(() {
@@ -144,7 +144,7 @@ class ProfileHome extends State<ProfileScreen> {
       } else {
         videoPlayerControllerBanner = VideoPlayerController.networkUrl(
             Uri.parse(ClientAPI.bannerUrl),
-            httpHeaders: ClientAPI.getProfileHeaders() ?? {});
+            httpHeaders: ClientAPI.getProfileHeaders(ClientAPI.user_id) ?? {});
       }
 
       videoPlayerControllerBanner!.addListener(() {
@@ -178,7 +178,7 @@ class ProfileHome extends State<ProfileScreen> {
         } else {
           videoPlayerControllerBanner = VideoPlayerController.networkUrl(
               Uri.parse(ClientAPI.bannerUrl),
-              httpHeaders: ClientAPI.getProfileHeaders() ?? {});
+              httpHeaders: ClientAPI.getProfileHeaders(ClientAPI.user_id) ?? {});
         }
       videoPlayerControllerBanner!.addListener(() {
         setState(() {});
@@ -277,7 +277,7 @@ class ProfileHome extends State<ProfileScreen> {
       setupPfpVideoWithState(null);
 
     } else {
-      pfp_widget = getAvatarImage(tempPfpBase64);
+      pfp_widget = getAvatarImage(tempPfpBase64, pfpRadius);
       Future.delayed(const Duration(microseconds: 1), () async {
         Widget? widget = await getAvatarImageFromServers();
         setState(() {
@@ -372,7 +372,7 @@ class ProfileHome extends State<ProfileScreen> {
 
 
   Future<Widget> getBannerImageFromServers() async {
-    String? img = await Requests.getProfileBannerBase64Image(headers: ClientAPI.getProfileHeaders());
+    String? img = await Requests.getProfileBannerBase64Image(headers: ClientAPI.getProfileHeaders(ClientAPI.user_id));
     if (img == null) {
       return Container();
     }
@@ -401,16 +401,15 @@ class ProfileHome extends State<ProfileScreen> {
                 fit: BoxFit.fill)));
   }
 
-  Widget getAvatarImage(String img) {
+  static Widget getAvatarImage(String img, double pfpRadius2) {
     return CircleAvatar(
-      radius: pfpRadius,
+      radius: pfpRadius2,
       backgroundImage: Image.memory(base64Decode(img)).image,
     );
-
   }
 
   Future<Widget> getAvatarImageFromServers() async {
-    String? img = await Requests.getProfileAvatarBase64Image(headers: ClientAPI.getProfileHeaders());
+    String? img = await Requests.getProfileAvatarBase64Image(headers: ClientAPI.getProfileHeaders(ClientAPI.user_id));
     if (img == null) {
       return Container();
     }
@@ -534,7 +533,7 @@ class ProfileHome extends State<ProfileScreen> {
                             String? img = await pickFile(true);
                             if (img != null && img.isNotEmpty) {
                               setState(() {
-                                pfp_widget = getAvatarImage(img);
+                                pfp_widget = getAvatarImage(img, pfpRadius);
                               });
                             }
                           },

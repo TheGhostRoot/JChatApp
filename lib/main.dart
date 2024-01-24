@@ -107,8 +107,8 @@ class ClientAPI {
     return cryption.globalEncrypt(sess_id.toString());
   }
 
-  static Map<String, String>? getProfileHeaders() {
-    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": ClientAPI.user_id}, true);
+  static Map<String, String>? getProfileHeaders(int id) {
+    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": id}, true);
     //String? sessHeader = ClientAPI.getSessionHeader();
     if (authHeader == null) {
       return null;

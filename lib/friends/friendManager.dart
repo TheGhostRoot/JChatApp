@@ -6,33 +6,19 @@ import 'package:jchatapp/requestHandler.dart';
 
 class FriendManager {
 
-  static Future<Map<dynamic, dynamic>?> getFriends() async {
+  static Future<bool> getFriends() async {
     if (ClientAPI.user_id == 0) {
-      return null;
+      return false;
     }
 
     String? sessHeader = ClientAPI.getSessionHeader();
     if (sessHeader == null) {
-      return null;
+      return false;
     }
 
-    String allFriends = "";
-    for (Friend friend in ClientAPI.friends) {
-      if (friend.id != null) {
-        allFriends += ",${friend.id}";
-      }
-    }
-
-    if (allFriends.isEmpty) {
-      return null;
-    }
-
-    Map<dynamic, dynamic> claims = {};
-    claims["friends"] = allFriends;
-
-    String? authData = ClientAPI.jwt.generateUserJwt(claims);
+    String? authData = ClientAPI.jwt.generateUserJwt({"idk": true});
     if (authData == null) {
-      return null;
+      return false;
     }
 
     Map<String, String> header = {};
@@ -40,8 +26,17 @@ class FriendManager {
     header[ClientAPI.HEADER_SESS] = sessHeader;
 
     String? res = await Requests.get("${ClientAPI.server}/friend", headers: header);
-    return ClientAPI.jwt.getData(res);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+    if (data == null || !data.containsKey("friends")) {
+      return false;
+    }
 
+    List<dynamic> allFriends = data["friends"] as List<dynamic>;
+    for (var f in allFriends) {
+      var ff = f as Map<String, dynamic>;
+      ClientAPI.friends.add(Friend(ff["name"], ff["id"], ff["pfpBase64"], ff["channel_id"]));
+    }
+    return true;
   }
 
   static Future<Map<String, dynamic>?> getFriendRequests() async {
@@ -60,7 +55,7 @@ class FriendManager {
     }
 
     Map<String, String> header = {};
-    header["friend_requests"] = "1";
+    header["Friend_requests"] = "1";
     header[ClientAPI.HEADER_SESS] = sess_header;
     header[ClientAPI.HEADER_AUTH] = auth_header;
 
@@ -73,8 +68,125 @@ class FriendManager {
     return data["friend_requests"] as Map<String, dynamic>;
   }
 
+  static Future<Map<String, dynamic>?> getPendingRequests() async {
+    if (ClientAPI.user_id == 0) {
+      return null;
+    }
 
-  static Future<bool> sendFriendRequest(Map<dynamic, dynamic> data) async {
+    String? sess_header = ClientAPI.getSessionHeader();
+    if (sess_header == null) {
+      return null;
+    }
+
+    String? auth_header = ClientAPI.jwt.generateUserJwt({"idk": true});
+    if (auth_header == null) {
+      return null;
+    }
+
+    Map<String, String> header = {};
+    header["Pending_requests"] = "1";
+    header[ClientAPI.HEADER_SESS] = sess_header;
+    header[ClientAPI.HEADER_AUTH] = auth_header;
+
+    String? res = await Requests.get("${ClientAPI.server}/friend", headers: header);
+    Map<dynamic, dynamic>? data = ClientAPI.jwt.getData(res);
+    if (data == null || !data.containsKey("pending_requests") || data["pending_requests"] == null) {
+      return null;
+    }
+
+    return data["pending_requests"] as Map<String, dynamic>;
+  }
+
+  static Future<bool> sendFriendDenyRequest(int friend_id) async {
+    if (friend_id == 0 || ClientAPI.user_id == 0) {
+      return false;
+    }
+
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
+      return false;
+    }
+
+    String? authData = ClientAPI.jwt.generateUserJwt({"modif": "deny", "friend_id": friend_id});
+    if (authData == null) {
+      return false;
+    }
+
+    Map<String, String> header = {};
+    header[ClientAPI.HEADER_AUTH] = authData;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
+
+    String? res = await Requests.patch("${ClientAPI.server}/friend", headers: header);
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
+      return false;
+    }
+
+    return serverData["stats"];
+  }
+
+  static Future<bool> sendFriendAcceptRequest(int friend_id) async {
+    if (friend_id == 0 || ClientAPI.user_id == 0) {
+      return false;
+    }
+
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
+      return false;
+    }
+
+    // current friends like ",12,2141,45235"
+    String? authData = ClientAPI.jwt.generateUserJwt({"modif": "accept", "friend_id": friend_id});
+    if (authData == null) {
+      return false;
+    }
+
+    Map<String, String> header = {};
+    header[ClientAPI.HEADER_AUTH] = authData;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
+
+    String? res = await Requests.patch("${ClientAPI.server}/friend", headers: header);
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
+      return false;
+    }
+
+    return serverData["stats"];
+  }
+
+  /*
+  static Future<bool> cancelFriendRequest(int friend_id) async {
+    if (friend_id == 0 || ClientAPI.user_id == 0) {
+      return false;
+    }
+
+    String? sessHeader = ClientAPI.getSessionHeader();
+    if (sessHeader == null) {
+      return false;
+    }
+
+    // current friends like ",12,2141,45235"
+    String? authData = ClientAPI.jwt.generateUserJwt({"modif": "cancel", "friend_id": friend_id});
+    if (authData == null) {
+      return false;
+    }
+
+    Map<String, String> header = {};
+    header[ClientAPI.HEADER_AUTH] = authData;
+    header[ClientAPI.HEADER_SESS] = sessHeader;
+
+    String? res = await Requests.patch("${ClientAPI.server}/friend", headers: header);
+    Map<dynamic, dynamic>? serverData = ClientAPI.jwt.getData(res);
+    if (serverData == null || !serverData.containsKey("stats")) {
+      return false;
+    }
+
+    return serverData["stats"];
+  }
+
+   */
+
+  static Future<bool> sendFriendRequest(String friend_name) async {
     if (ClientAPI.user_id == 0) {
       return false;
     }
@@ -84,7 +196,7 @@ class FriendManager {
       return false;
     }
 
-    String? authData = ClientAPI.jwt.generateUserJwt(data);
+    String? authData = ClientAPI.jwt.generateUserJwt({"modif": "new", "friend_name": friend_name});
     if (authData == null) {
       return false;
     }
