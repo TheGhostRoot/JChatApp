@@ -100,6 +100,22 @@ class ProfileManager {
     }
 
     if (changes.containsKey("about_me") || changes.containsKey("stats") || changes.containsKey("name")) {
+      if (changes.containsKey("stats") && (changes["stats"] as String).length > 20) {
+        if (stats != null) {
+          return stats;
+
+        } else {
+          return false;
+        }
+      }
+      if (changes.containsKey("name") && (changes["name"] as String).length > 20) {
+        if (stats != null) {
+          return stats;
+
+        } else {
+          return false;
+        }
+      }
       String? authData = ClientAPI.jwt.generateUserJwt(changes);
       if (authData == null) {
         if (stats != null) {

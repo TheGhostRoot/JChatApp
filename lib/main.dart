@@ -90,7 +90,7 @@ class ClientAPI {
   }
 
   static String getBannerUrl(int id) {
-    return "${pfpUrl}${id}'";
+    return "${bannerUrl}${id}'";
   }
 
   static Future<void> SetUp() async {

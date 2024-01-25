@@ -291,7 +291,14 @@ class FriendsHome extends State<FriendsScreen> {
       friendPfp = ProfileHome.getAvatarImage(friend.imageBase64, 30);
     }
 
-    return Container(
+
+    var colorStats = friend.stats[0] == "0"
+        ? Colors.grey
+        : (friend.stats[0] == "1" ? Colors.green : Colors.red);
+
+    //double w = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
+    return SingleChildScrollView(scrollDirection: Axis.horizontal, child: Container(
+      width: WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width * 0.5,
         padding: const EdgeInsets.all(15),
         decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(
@@ -301,11 +308,52 @@ class FriendsHome extends State<FriendsScreen> {
             color: Colors.black),
         child: Row(children: [
           friendPfp,
-          const SizedBox(width: 30,),
 
-          Text(friend.name, style: const TextStyle(color: Colors.white, fontSize: 10)),
+          Column(children: [
+            const SizedBox(height: 30),
+            CircleAvatar(
+              radius: 10.0,
+              backgroundColor: colorStats,
+            ),
+          ]),
 
-        ]));
+          const SizedBox(width: 15),
+          Text(friend.name, style: const TextStyle(color: Colors.white, fontSize: 30)),
+          const SizedBox(width: 10),
+
+          ElevatedButton(
+              onPressed: () async {
+                // TODO open chat
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey,
+                  shape: const CircleBorder(),
+                  padding: const EdgeInsets.all(10)
+              ),
+              child: const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.chat)),
+          ),
+
+          const SizedBox(width: 10),
+
+          ElevatedButton(
+            onPressed: () async {
+              // TODO start call
+            },
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(10)
+            ),
+            child: const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.call)),
+          ),
+
+
+          const SizedBox(width: 10),
+
+          Text(friend.stats.substring(1), style: const TextStyle(fontSize: 15.0, color: Colors.white)),
+
+
+        ])));
   }
 
   Future<void> setRequests(BuildContext context) async {
@@ -478,7 +526,7 @@ class FriendsHome extends State<FriendsScreen> {
           const SizedBox(height: 20,),
 
           SingleChildScrollView(scrollDirection: Axis.horizontal, child: friends),
-          SingleChildScrollView(scrollDirection: Axis.horizontal, child:friendRequests),
+          SingleChildScrollView(scrollDirection: Axis.horizontal, child: friendRequests),
           SingleChildScrollView(scrollDirection: Axis.horizontal, child: pendingRequests),
 
         ])));

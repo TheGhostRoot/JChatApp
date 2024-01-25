@@ -651,6 +651,7 @@ class ProfileHome extends State<ProfileScreen> {
                         top: Radius.circular(10.0),
                       )),
                   child: TextField(
+                    maxLength: 20,
                     textInputAction: TextInputAction.next,
                     controller: statsController,
                     textAlign: TextAlign.center,

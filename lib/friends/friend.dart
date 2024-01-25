@@ -5,8 +5,10 @@ class Friend {
   String imageBase64; // video;
   int id;
   int channel_id;
+  String stats;
+  String badges;
 
-  Friend(this.name, this.id, this.imageBase64, this.channel_id);
+  Friend(this.name, this.id, this.imageBase64, this.channel_id, this.stats, this.badges);
 
   String getName() {
     return name;
