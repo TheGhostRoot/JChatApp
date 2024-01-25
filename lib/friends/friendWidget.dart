@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -249,18 +248,18 @@ class FriendsHome extends State<FriendsScreen> {
             ])));
   }
 
-  Widget setupPfpVideoFriend(VideoPlayerController v) {
+  Widget setupPfpVideoFriend(Friend friend) {
     return SizedBox(height: 60, width: 60, child: ClipRRect(
       borderRadius: BorderRadius.circular(60.0),
       clipBehavior: Clip.hardEdge,
-      child: VideoPlayer(v), // It's highly advisable to use this behavior to improve performance.
+      child: VideoPlayer(friendsPfp[friend]!), // It's highly advisable to use this behavior to improve performance.
     ));
   }
 
-  VideoPlayerController getPfpVideo(int friend_id) {
+  Widget setupPfpVideo(Friend friend) {
     VideoPlayerController videoPlayerControllerPfp = VideoPlayerController.networkUrl(
-        Uri.parse(ClientAPI.pfpUrl),
-        httpHeaders: ClientAPI.getProfileHeaders(friend_id) ?? {});
+          Uri.parse(ClientAPI.getPfpUrl(friend.id)),
+          httpHeaders: ClientAPI.getProfileHeaders() ?? {});
 
     videoPlayerControllerPfp.addListener(() {
       setState(() {});
@@ -268,18 +267,25 @@ class FriendsHome extends State<FriendsScreen> {
 
     videoPlayerControllerPfp.setLooping(true);
     videoPlayerControllerPfp.setVolume(0);
-    videoPlayerControllerPfp.initialize().then((_) => setState(() {}));
+    videoPlayerControllerPfp.initialize().then((_) => _);
     videoPlayerControllerPfp.play();
+    friendsPfp[friend] = videoPlayerControllerPfp;
 
-    return videoPlayerControllerPfp;
+
+    return SizedBox(height: 60, width: 60, child: ClipRRect(
+      borderRadius: BorderRadius.circular(60.0),
+      clipBehavior: Clip.hardEdge,
+      child: VideoPlayer(videoPlayerControllerPfp), // It's highly advisable to use this behavior to improve performance.
+    ));
+
   }
 
   Widget getFriendWidget(Friend friend) {
-    Widget friendPfp = Container();
-    if (friend.imageBase64 == "video;") {
-      VideoPlayerController v = getPfpVideo(friend.id);
-      friendsPfp[friend] = v;
-      friendPfp = setupPfpVideoFriend(v);
+    Widget friendPfp;
+    if (friend.imageBase64.startsWith("video;")) {
+      //setupPfpVideo(friend);
+      //friendPfp = setupPfpVideoFriend(friend);
+      friendPfp = setupPfpVideo(friend);
 
     } else {
       friendPfp = ProfileHome.getAvatarImage(friend.imageBase64, 30);

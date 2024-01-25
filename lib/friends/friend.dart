@@ -2,7 +2,7 @@
 class Friend {
 
   String name;
-  String imageBase64;
+  String imageBase64; // video;
   int id;
   int channel_id;
 

@@ -95,9 +95,9 @@ class Requests {
   }
 
 
-  static Future<String?> getProfileAvatarBase64Image({Map<String, String>? headers}) async {
+  static Future<String?> getProfileAvatarBase64Image(int id, {Map<String, String>? headers}) async {
     try {
-      return (await http.get(Uri.parse(ClientAPI.pfpUrl),
+      return (await http.get(Uri.parse(ClientAPI.getPfpUrl(id)),
           headers: headers)).body;
 
     } catch (e) {
@@ -105,10 +105,10 @@ class Requests {
     }
   }
 
-  static Future<String?> getProfileBannerBase64Image({Map<String, String>? headers}) async {
+  static Future<String?> getProfileBannerBase64Image(int id, {Map<String, String>? headers}) async {
     try {
 
-      return (await http.get(Uri.parse(ClientAPI.bannerUrl),
+      return (await http.get(Uri.parse(ClientAPI.getBannerUrl(id)),
           headers: headers)).body;
 
     } catch (e) {

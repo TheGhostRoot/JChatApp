@@ -71,8 +71,8 @@ class ProfileHome extends State<ProfileScreen> {
 
       } else {
         videoPlayerControllerPfp = VideoPlayerController.networkUrl(
-            Uri.parse(ClientAPI.pfpUrl),
-            httpHeaders: ClientAPI.getProfileHeaders(ClientAPI.user_id) ?? {});
+            Uri.parse(ClientAPI.getPfpUrl(ClientAPI.user_id)),
+            httpHeaders: ClientAPI.getProfileHeaders() ?? {});
       }
 
       videoPlayerControllerPfp!.addListener(() {
@@ -112,8 +112,8 @@ class ProfileHome extends State<ProfileScreen> {
 
         } else {
           videoPlayerControllerPfp = VideoPlayerController.networkUrl(
-              Uri.parse(ClientAPI.pfpUrl),
-              httpHeaders: ClientAPI.getProfileHeaders(ClientAPI.user_id) ?? {});
+              Uri.parse(ClientAPI.getPfpUrl(ClientAPI.user_id)),
+              httpHeaders: ClientAPI.getProfileHeaders() ?? {});
         }
 
         videoPlayerControllerPfp!.addListener(() {
@@ -143,8 +143,8 @@ class ProfileHome extends State<ProfileScreen> {
         videoPlayerControllerBanner = VideoPlayerController.file(file);
       } else {
         videoPlayerControllerBanner = VideoPlayerController.networkUrl(
-            Uri.parse(ClientAPI.bannerUrl),
-            httpHeaders: ClientAPI.getProfileHeaders(ClientAPI.user_id) ?? {});
+            Uri.parse(ClientAPI.getBannerUrl(ClientAPI.user_id)),
+            httpHeaders: ClientAPI.getProfileHeaders() ?? {});
       }
 
       videoPlayerControllerBanner!.addListener(() {
@@ -177,8 +177,8 @@ class ProfileHome extends State<ProfileScreen> {
 
         } else {
           videoPlayerControllerBanner = VideoPlayerController.networkUrl(
-              Uri.parse(ClientAPI.bannerUrl),
-              httpHeaders: ClientAPI.getProfileHeaders(ClientAPI.user_id) ?? {});
+              Uri.parse(ClientAPI.getBannerUrl(ClientAPI.user_id)),
+              httpHeaders: ClientAPI.getProfileHeaders() ?? {});
         }
       videoPlayerControllerBanner!.addListener(() {
         setState(() {});
@@ -372,7 +372,7 @@ class ProfileHome extends State<ProfileScreen> {
 
 
   Future<Widget> getBannerImageFromServers() async {
-    String? img = await Requests.getProfileBannerBase64Image(headers: ClientAPI.getProfileHeaders(ClientAPI.user_id));
+    String? img = await Requests.getProfileBannerBase64Image(ClientAPI.user_id, headers: ClientAPI.getProfileHeaders());
     if (img == null) {
       return Container();
     }
@@ -409,7 +409,7 @@ class ProfileHome extends State<ProfileScreen> {
   }
 
   Future<Widget> getAvatarImageFromServers() async {
-    String? img = await Requests.getProfileAvatarBase64Image(headers: ClientAPI.getProfileHeaders(ClientAPI.user_id));
+    String? img = await Requests.getProfileAvatarBase64Image(ClientAPI.user_id, headers: ClientAPI.getProfileHeaders());
     if (img == null) {
       return Container();
     }

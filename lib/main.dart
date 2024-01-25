@@ -62,8 +62,8 @@ class ClientAPI {
   static late String user_banner_base64;
   static late String user_pfp_base64;
 
-  static String bannerUrl = "${ClientAPI.server}/profile/banner?redirected=false&type=";
-  static String pfpUrl = "${ClientAPI.server}/profile/avatar?redirected=false&type=";
+  static String bannerUrl = "${ClientAPI.server}/profile/banner?redirected=false&type=''&user_id='";
+  static String pfpUrl = "${ClientAPI.server}/profile/avatar?redirected=false&type=''&user_id='";
 
   static String USER_SIGN_KEY = "";
   static String USER_ENCRYP_KEY = "";
@@ -84,6 +84,14 @@ class ClientAPI {
   static int sess_id = 0;
 
   static List friends = <Friend>[];
+
+  static String getPfpUrl(int id) {
+    return "${pfpUrl}${id}'";
+  }
+
+  static String getBannerUrl(int id) {
+    return "${pfpUrl}${id}'";
+  }
 
   static Future<void> SetUp() async {
       cryption = Cryption();
@@ -107,8 +115,8 @@ class ClientAPI {
     return cryption.globalEncrypt(sess_id.toString());
   }
 
-  static Map<String, String>? getProfileHeaders(int id) {
-    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"id": id}, true);
+  static Map<String, String>? getProfileHeaders() {
+    String? authHeader = ClientAPI.jwt.generateGlobalJwt({"idk": true}, true);
     //String? sessHeader = ClientAPI.getSessionHeader();
     if (authHeader == null) {
       return null;
@@ -185,6 +193,7 @@ class ClientConfig {
 
       if (!newFile.existsSync()) {
         Directory(path).createSync();
+        Directory("$path\\temp").createSync();
         newFile.createSync();
         String? configData = ClientAPI.jwt.generateGlobalJwt(config, true);
         if (configData != null) {
@@ -332,7 +341,7 @@ class _WelcomePage extends State<JChat> {
     data = given_data;
     clientConfig = data["client_config"] as ClientConfig;
     Future.delayed(const Duration(microseconds: 1), () async {
-      if (data.containsKey("forgetPassword_password") && data["captcha_stats"]) {
+      if (data.containsKey("forgetPassword_password") && data.containsKey("captcha_stats") && data["captcha_stats"]) {
           if (await AccountManager.getAccount(data["email"], null, null)) {
             setState(() {
               successForgetPassword = "Successfully changed password";
@@ -359,7 +368,7 @@ class _WelcomePage extends State<JChat> {
           setupPfpVideo(70, clientConfig.config["remember_me"]["id"]);
 
         } else {
-          pfp_base64_remember_me = await Requests.getProfileAvatarBase64Image(
+          pfp_base64_remember_me = await Requests.getProfileAvatarBase64Image(clientConfig.config["remember_me"]["id"],
               headers: ClientAPI.getProfileHeadersWithRememberMe(
                   clientConfig.config["remember_me"]["id"]));
           pfp_base64_remember_me ??= await ClientAPI.getDefaultPfp();
