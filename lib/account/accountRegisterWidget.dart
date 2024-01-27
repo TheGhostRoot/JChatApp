@@ -17,7 +17,6 @@ class AccountRegisterScreen extends StatefulWidget {
 }
 
 class AccountRegisterHome extends State<AccountRegisterScreen> {
-
   late Map<dynamic, dynamic> data;
 
   var emailController = TextEditingController();
@@ -39,16 +38,21 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
 
   bool _passwordVisible = false;
 
-  AccountRegisterHome(Map<dynamic, dynamic> given_data) {
-    data = given_data;
-    if (data.containsKey("captcha_stats") && data.containsKey("name") &&
-        data.containsKey("email") && data.containsKey("password") && data["captcha_stats"]) {
+  AccountRegisterHome(Map<dynamic, dynamic> gdata) {
+    data = gdata;
+    if (data.containsKey("captcha_stats") &&
+        data.containsKey("name") &&
+        data.containsKey("email") &&
+        data.containsKey("password") &&
+        data["captcha_stats"]) {
       Future.delayed(const Duration(microseconds: 1), () async {
-          if (!await AccountManager.createAccount(data["name"], data["email"], data["password"])) {
+        bool f = !await AccountManager.createAccount(
+            data["name"], data["email"], data["password"]);
+        try {
+          if (f) {
             setState(() {
               error = "Can't create this account";
             });
-
           } else {
             setState(() {
               suss = "Account created";
@@ -60,11 +64,14 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
           data.remove("name");
           data.remove("on_success_path");
           data.remove("on_fail_path");
+        } catch(e) {
+          return;
+        }
       });
     }
   }
 
-  void registerUser(BuildContext context)  {
+  void registerUser(BuildContext context) {
     data["on_success_path"] = "/register";
     data["on_fail_path"] = "/register";
     data["verify_on_success_path"] = "/captcha";
@@ -100,233 +107,238 @@ class AccountRegisterHome extends State<AccountRegisterScreen> {
                 child: SingleChildScrollView(
                     child: Center(
                         child: Column(children: [
-                          const SizedBox(height: 100.0),
-                          Container(
-                              //height: bigBlack,
-                              padding: const EdgeInsets.only(bottom: 30),
-                              width: Platform.isAndroid || Platform.isIOS ? 300 : 500,
-                              decoration: const BoxDecoration(
-                                color: Colors.black,
-                                borderRadius: BorderRadius.vertical(
-                                  bottom: Radius.circular(20.0),
-                                  top: Radius.circular(20.0),
-                                ),
-                              ),
-                              child: Column(children: [
-                            const SizedBox(height: 30.0),
-                                Text("Create an account",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: Platform.isAndroid || Platform.isIOS ? 20 : 40)),
-                            const SizedBox(height: 20.0),
-                            Text(error, style: const TextStyle(color: Colors.red)),
-                                Text(suss, style: const TextStyle(color: Colors.green)),
-                            SizedBox(
-                              width: 200.0,
-                              child: TextField(
-                                  textInputAction: TextInputAction.next,
-                                  controller: nameController,
-                                  style: const TextStyle(color: Colors.white),
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10.0)
-                                      ),
-                                      hintText: 'Name',
-                                      labelText: "Name",
-                                      hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
-                                )
-                            ),
-                            const SizedBox(height: 20.0),
-                            SizedBox(
-                              width: 200.0,
-                              child: TextField(
-                                textInputAction: TextInputAction.next,
-                                controller: emailController,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10.0)
-                                    ),
-                                    labelText: "Email",
-                                    hintText: 'Email',
-                                    hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
-                              ),
-                            ),
-                            const SizedBox(height: 20.0),
-                            SizedBox(
-                              width: 200.0,
-                              child: TextField(
-                                onChanged: (value) {
-                                  for (int i = 0; i < CapicatlAlph.length; i++) {
-                                    if (value.contains(CapicatlAlph[i])) {
-                                      setState(() {
-                                        capitalLetters = "🟢";
-                                      });
-                                      break;
-                                    } else {
-                                      setState(() {
-                                        capitalLetters = "🔴";
-                                      });
-                                    }
-                                  }
-                                  for (int i = 0; i < SmallAlph.length; i++) {
-                                    if (value.contains(SmallAlph[i])) {
-                                      setState(() {
-                                        smallLetters = "🟢";
-                                      });
-                                      break;
-                                    } else {
-                                      setState(() {
-                                        smallLetters = "🔴";
-                                      });
-                                    }
-                                  }
-                                  for (int i = 0; i < specialAlph.length; i++) {
-                                    if (value.contains(specialAlph[i])) {
-                                      setState(() {
-                                        specialLetters = "🟢";
-                                      });
-                                      break;
-                                    } else {
-                                      setState(() {
-                                        specialLetters = "🔴";
-                                      });
-                                    }
-                                  }
-                                  for (int i = 0; i < numbersAlph.length; i++) {
-                                    if (value.contains(numbersAlph[i])) {
-                                      setState(() {
-                                        numbers = "🟢";
-                                      });
-                                      break;
-                                    } else {
-                                      setState(() {
-                                        numbers = "🔴";
-                                      });
-                                    }
-                                  }
-                                },
-                                textInputAction: TextInputAction.done,
-                                controller: passwordController,
-                                style: const TextStyle(color: Colors.white),
-                                obscureText: !_passwordVisible,
-                                decoration: InputDecoration(
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _passwordVisible
-                                            ? Icons.visibility
-                                            : Icons.visibility_off,
-                                        color: Theme.of(context).primaryColorDark,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _passwordVisible = !_passwordVisible;
-                                        });
-                                      },
-                                    ),
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10.0)
-                                    ),
-                                    hintText: 'Password',
-                                    labelText: "Password",
-                                    hintStyle: const TextStyle(color: Color.fromRGBO(54, 54, 54, 100))),
-                              ),
-                            ),
-                            const SizedBox(height: 10.0),
-                            Text("$capitalLetters ABC",
-                                style: const TextStyle(color: Colors.white)),
-                            const SizedBox(height: 5.0),
-                            Text("$smallLetters abc",
-                                style: const TextStyle(color: Colors.white)),
-                            const SizedBox(height: 5.0),
-                            Text("$specialLetters !.@_", style: const TextStyle(color: Colors.white)),
-                            const SizedBox(height: 5.0),
-                            Text("$numbers 123",
-                                style: const TextStyle(color: Colors.white)),
-
-                            const SizedBox(height: 30.0),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  error = "";
-                                  suss = "";
-                                });
-                                if (nameController.text.isEmpty) {
+                  const SizedBox(height: 100.0),
+                  Container(
+                      //height: bigBlack,
+                      padding: const EdgeInsets.only(bottom: 30),
+                      width: Platform.isAndroid || Platform.isIOS ? 300 : 500,
+                      decoration: const BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(20.0),
+                          top: Radius.circular(20.0),
+                        ),
+                      ),
+                      child: Column(children: [
+                        const SizedBox(height: 30.0),
+                        Text("Create an account",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: Platform.isAndroid || Platform.isIOS
+                                    ? 20
+                                    : 40)),
+                        const SizedBox(height: 20.0),
+                        Text(error, style: const TextStyle(color: Colors.red)),
+                        Text(suss, style: const TextStyle(color: Colors.green)),
+                        SizedBox(
+                            width: 200.0,
+                            child: TextField(
+                              textInputAction: TextInputAction.next,
+                              controller: nameController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(10.0)),
+                                  hintText: 'Name',
+                                  labelText: "Name",
+                                  hintStyle: const TextStyle(
+                                      color: Color.fromRGBO(54, 54, 54, 100))),
+                            )),
+                        const SizedBox(height: 20.0),
+                        SizedBox(
+                          width: 200.0,
+                          child: TextField(
+                            textInputAction: TextInputAction.next,
+                            controller: emailController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0)),
+                                labelText: "Email",
+                                hintText: 'Email',
+                                hintStyle: const TextStyle(
+                                    color: Color.fromRGBO(54, 54, 54, 100))),
+                          ),
+                        ),
+                        const SizedBox(height: 20.0),
+                        SizedBox(
+                          width: 200.0,
+                          child: TextField(
+                            onChanged: (value) {
+                              for (int i = 0; i < CapicatlAlph.length; i++) {
+                                if (value.contains(CapicatlAlph[i])) {
                                   setState(() {
-                                    error = "Name required";
+                                    capitalLetters = "🟢";
                                   });
-                                  return;
-                                }
-
-                                if (nameController.text.length > 20) {
+                                  break;
+                                } else {
                                   setState(() {
-                                    error = "Max name length 20";
+                                    capitalLetters = "🔴";
                                   });
-                                  return;
                                 }
-
-                                if (emailController.text.isEmpty || !EmailSender().checkEmail(emailController.text)) {
+                              }
+                              for (int i = 0; i < SmallAlph.length; i++) {
+                                if (value.contains(SmallAlph[i])) {
                                   setState(() {
-                                    error = "Valid email required";
+                                    smallLetters = "🟢";
                                   });
-                                  return;
-                                }
-
-                                if (emailController.text.length > 50) {
+                                  break;
+                                } else {
                                   setState(() {
-                                    error = "Max email length 50";
+                                    smallLetters = "🔴";
                                   });
-                                  return;
                                 }
-
-                                if (passwordController.text.isEmpty) {
+                              }
+                              for (int i = 0; i < specialAlph.length; i++) {
+                                if (value.contains(specialAlph[i])) {
                                   setState(() {
-                                    error = "Password required";
+                                    specialLetters = "🟢";
                                   });
-                                  return;
-                                }
-
-                                if (passwordController.text.length > 100) {
+                                  break;
+                                } else {
                                   setState(() {
-                                    error = "Max password length 100";
+                                    specialLetters = "🔴";
                                   });
-                                  return;
                                 }
-
-                                registerUser(context);
-
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.cyan,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                              ),
-                              child: const Padding(
-                                padding: EdgeInsets.all(15.0),
-                                child: Text('Register',
-                                  style: TextStyle(fontSize: 18.0),
-                                ),
-                              ),
-                            ),
-
-                                const SizedBox(height: 10.0),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(context, "/welcome", arguments: data);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.cyan,
-                                    minimumSize: const Size(100, 40),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
+                              }
+                              for (int i = 0; i < numbersAlph.length; i++) {
+                                if (value.contains(numbersAlph[i])) {
+                                  setState(() {
+                                    numbers = "🟢";
+                                  });
+                                  break;
+                                } else {
+                                  setState(() {
+                                    numbers = "🔴";
+                                  });
+                                }
+                              }
+                            },
+                            textInputAction: TextInputAction.done,
+                            controller: passwordController,
+                            style: const TextStyle(color: Colors.white),
+                            obscureText: !_passwordVisible,
+                            decoration: InputDecoration(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _passwordVisible
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Theme.of(context).primaryColorDark,
                                   ),
-                                  child: const Text('Go Back', style: TextStyle(fontSize: 15.0)),
-                                )
-                          ])),
-                          const SizedBox(height: 30.0)
+                                  onPressed: () {
+                                    setState(() {
+                                      _passwordVisible = !_passwordVisible;
+                                    });
+                                  },
+                                ),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0)),
+                                hintText: 'Password',
+                                labelText: "Password",
+                                hintStyle: const TextStyle(
+                                    color: Color.fromRGBO(54, 54, 54, 100))),
+                          ),
+                        ),
+                        const SizedBox(height: 10.0),
+                        Text("$capitalLetters ABC",
+                            style: const TextStyle(color: Colors.white)),
+                        const SizedBox(height: 5.0),
+                        Text("$smallLetters abc",
+                            style: const TextStyle(color: Colors.white)),
+                        const SizedBox(height: 5.0),
+                        Text("$specialLetters !.@_",
+                            style: const TextStyle(color: Colors.white)),
+                        const SizedBox(height: 5.0),
+                        Text("$numbers 123",
+                            style: const TextStyle(color: Colors.white)),
+                        const SizedBox(height: 30.0),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              error = "";
+                              suss = "";
+                            });
+                            if (nameController.text.isEmpty) {
+                              setState(() {
+                                error = "Name required";
+                              });
+                              return;
+                            }
+
+                            if (nameController.text.length > 20) {
+                              setState(() {
+                                error = "Max name length 20";
+                              });
+                              return;
+                            }
+
+                            if (emailController.text.isEmpty ||
+                                !EmailSender()
+                                    .checkEmail(emailController.text)) {
+                              setState(() {
+                                error = "Valid email required";
+                              });
+                              return;
+                            }
+
+                            if (emailController.text.length > 50) {
+                              setState(() {
+                                error = "Max email length 50";
+                              });
+                              return;
+                            }
+
+                            if (passwordController.text.isEmpty) {
+                              setState(() {
+                                error = "Password required";
+                              });
+                              return;
+                            }
+
+                            if (passwordController.text.length > 100) {
+                              setState(() {
+                                error = "Max password length 100";
+                              });
+                              return;
+                            }
+
+                            registerUser(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.cyan,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                            ),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(15.0),
+                            child: Text(
+                              'Register',
+                              style: TextStyle(fontSize: 18.0),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10.0),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, "/welcome",
+                                arguments: data);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.cyan,
+                            minimumSize: const Size(100, 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                            ),
+                          ),
+                          child: const Text('Go Back',
+                              style: TextStyle(fontSize: 15.0)),
+                        )
+                      ])),
+                  const SizedBox(height: 30.0)
                 ]))))));
   }
 }

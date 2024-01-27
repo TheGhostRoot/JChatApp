@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jchatapp/friends/chat/friendChatWidget.dart';
 import 'package:jchatapp/friends/friendWidget.dart';
 import 'package:jchatapp/profile/profileWidget.dart';
 
@@ -16,11 +17,26 @@ class NavigationScreen extends StatefulWidget {
 
 class NavigationHome extends State<NavigationScreen> {
   late Map<dynamic, dynamic> data;
+
   int currentPageIndex = 2;
 
+  late Widget friends;
 
-  NavigationHome(Map<dynamic, dynamic> given_data) {
-    data = given_data;
+  NavigationHome(Map<dynamic, dynamic> gdata) {
+    data = gdata;
+    if (data.containsKey("goFriends")) {
+      data.remove("goFriends");
+      currentPageIndex = 1;
+    }
+
+    if (data.containsKey("friendsChat")) {
+      currentPageIndex = 1;
+      friends = FriendChatScreen(data);
+
+    } else {
+      friends = FriendsScreen(data);
+    }
+
   }
 
   @override
@@ -84,7 +100,7 @@ class NavigationHome extends State<NavigationScreen> {
         indicatorColor: const Color.fromRGBO(237, 237, 237, 1),
         indicatorShape: const CircleBorder()
       ),
-        body: [const Text("Groups"), FriendsScreen(data), const Text("Posts"), ProfileScreen(data)][currentPageIndex]
+        body: [const Text("Groups"), friends, const Text("Posts"), ProfileScreen(data)][currentPageIndex]
     ));
   }
 }

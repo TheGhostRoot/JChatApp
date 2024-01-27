@@ -27,6 +27,7 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileHome extends State<ProfileScreen> {
   late Map<dynamic, dynamic> data;
+
   late ClientConfig clientConfig;
   late String userStatsDropdown;
   String error = "";
@@ -233,33 +234,38 @@ class ProfileHome extends State<ProfileScreen> {
     } else {
       banner_widget = getBannerImage(tempBannerBase64);
       Future.delayed(const Duration(microseconds: 1), () async {
-        Widget? widget = await getBannerImageFromServers();
-        setState(() {
-          if (mounted) {
-            banner_widget = widget;
-          }
-        });
+        Widget? widget1 = await getBannerImageFromServers();
+        try {
+          setState(() {
+            banner_widget = widget1;
+          });
+        } catch(e) {
+          return;
+        }
 
         if (data.containsKey("newEmail") && data.containsKey("captcha_stats") && data.containsKey("email")) {
-          if (data["captcha_stats"]) {
-            Map<dynamic, dynamic> changes = {};
-            changes["modif"] = "email";
-            changes["email"] = data["newEmail"];
+          try {
+            if (data["captcha_stats"]) {
+              Map<dynamic, dynamic> changes = {};
+              changes["modif"] = "email";
+              changes["email"] = data["newEmail"];
 
-            if (await AccountManager.updateAccount(changes)) {
-              setState(() {
-                emailSuccess = "Successfully changed email";
-              });
-
+              if (await AccountManager.updateAccount(changes)) {
+                setState(() {
+                  emailSuccess = "Successfully changed email";
+                });
+              } else {
+                setState(() {
+                  emailError = "Failed to change email";
+                });
+              }
             } else {
               setState(() {
-                emailError = "Failed to change email";
+                emailError = "Failed to verify";
               });
             }
-          } else {
-            setState(() {
-              emailError = "Failed to verify";
-            });
+          } catch(e) {
+            return;
           }
 
           data.remove("captcha_stats");
@@ -280,17 +286,15 @@ class ProfileHome extends State<ProfileScreen> {
       pfp_widget = getAvatarImage(tempPfpBase64, pfpRadius);
       Future.delayed(const Duration(microseconds: 1), () async {
         Widget? widget = await getAvatarImageFromServers();
-        setState(() {
-          if (mounted) {
+        try {
+          setState(() {
             pfp_widget = widget;
-          }
-        });
+          });
+        } catch(e) {
+          return;
+        }
       });
     }
-  }
-
-  ProfileHome(Map<dynamic, dynamic> given_data) {
-    data = given_data;
   }
 
   @override
@@ -306,6 +310,10 @@ class ProfileHome extends State<ProfileScreen> {
       videoPlayerControllerPfp!.dispose();
     }
     super.dispose();
+  }
+
+  ProfileHome(Map<dynamic, dynamic> gdata) {
+    data = gdata;
   }
 
   Widget getSingleBadge(Map<dynamic, dynamic> badge, bool nextToOther) {
@@ -766,7 +774,7 @@ class ProfileHome extends State<ProfileScreen> {
               data["on_fail_path"] = "/home";
               data["newEmail"] = emailController.text;
               data["email"] = ClientAPI.user_email;
-              Navigator.of(context, rootNavigator: true).pushNamed("/verify");
+              Navigator.of(context, rootNavigator: true).pushNamed("/verify", arguments: data);
             },
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.cyan,

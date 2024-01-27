@@ -18,6 +18,8 @@ class VerificationPage extends StatefulWidget {
 }
 
 class VerificaionHome extends State<VerificationPage> {
+  late Map<dynamic, dynamic> data;
+
   var num1Controller = TextEditingController();
   var num2Controller = TextEditingController();
   var num3Controller = TextEditingController();
@@ -38,7 +40,6 @@ class VerificaionHome extends State<VerificationPage> {
   }
 
   late ClientConfig clientConfig;
-  late Map<dynamic, dynamic> data;
   EmailSender emailsender = EmailSender();
 
   String error = "";
@@ -54,14 +55,18 @@ class VerificaionHome extends State<VerificationPage> {
     _timer = Timer.periodic(
       oneSec,
           (Timer timer) {
-        if (_start == 0) {
-          setState(() {
-            timer.cancel();
-          });
-        } else {
-          setState(() {
-            _start--;
-          });
+        try {
+          if (_start == 0) {
+            setState(() {
+              timer.cancel();
+            });
+          } else {
+            setState(() {
+              _start--;
+            });
+          }
+        } catch(e) {
+          return;
         }
       },
     );
@@ -78,14 +83,18 @@ class VerificaionHome extends State<VerificationPage> {
     return response["message"] == "emailSendSuccess";
   }
 
-  VerificaionHome(Map<dynamic, dynamic> given_data) {
-    data = given_data;
+  VerificaionHome(Map<dynamic, dynamic> gdata) {
+    data = gdata;
     startTimer();
     Future.delayed(const Duration(microseconds: 1), () async {
       if (!await sendEmail()) {
-        setState(() {
-          error = "Can't send email";
-        });
+        try {
+          setState(() {
+            error = "Can't send email";
+          });
+        } catch(e) {
+          return;
+        }
       }
     });
   }

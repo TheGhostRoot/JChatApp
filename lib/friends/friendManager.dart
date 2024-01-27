@@ -32,6 +32,7 @@ class FriendManager {
     }
 
     List<dynamic> allFriends = data["friends"] as List<dynamic>;
+    ClientAPI.friends.clear();
     for (var f in allFriends) {
       var ff = f as Map<String, dynamic>;
       ClientAPI.friends.add(Friend(ff["name"], ff["id"], ff["pfpBase64"], ff["channel_id"], ff["stats"], ff["badges"]));
@@ -226,7 +227,6 @@ class FriendManager {
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["friends"] = ClientAPI.friends;
     claims["friend_id"] = friendId;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);

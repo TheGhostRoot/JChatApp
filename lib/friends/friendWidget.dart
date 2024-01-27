@@ -17,10 +17,12 @@ class FriendsScreen extends StatefulWidget {
   }
 
   @override
-  FriendsHome createState() => FriendsHome();
+  FriendsHome createState() => FriendsHome(data);
 }
 
 class FriendsHome extends State<FriendsScreen> {
+
+  late Map<dynamic, dynamic> data;
 
   var searchController = TextEditingController();
 
@@ -44,6 +46,10 @@ class FriendsHome extends State<FriendsScreen> {
   late Widget denyButton;
 
   Map<Friend, VideoPlayerController> friendsPfp = {};
+
+  FriendsHome(Map<dynamic, dynamic> gdata) {
+    data = gdata;
+  }
 
   @override
   void dispose() {
@@ -131,6 +137,7 @@ class FriendsHome extends State<FriendsScreen> {
 
   Widget getFriendRequestWidget(String name, BuildContext context) {
     return SingleChildScrollView(scrollDirection: Axis.vertical, child: Container(
+        width: WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width * 0.5,
         padding: const EdgeInsets.all(15),
         decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(
@@ -146,7 +153,9 @@ class FriendsHome extends State<FriendsScreen> {
                   ElevatedButton(
                       onPressed: () async {
                         if (friendRequestData != null && friendRequestData!.isNotEmpty && friendRequestData!.containsKey(name)) {
-                          if (await FriendManager.sendFriendAcceptRequest(friendRequestData![name])) {
+                          bool f = await FriendManager.sendFriendAcceptRequest(friendRequestData![name]);
+                          if (!context.mounted) return;
+                          if (f) {
                             setState(() {
                               error = "";
                               success = "Accepted $name friend request";
@@ -175,7 +184,9 @@ class FriendsHome extends State<FriendsScreen> {
                   ElevatedButton(
                       onPressed: () async {
                         if (friendRequestData != null && friendRequestData!.isNotEmpty && friendRequestData!.containsKey(name)) {
-                          if (await FriendManager.sendFriendDenyRequest(friendRequestData![name])) {
+                          bool f = await FriendManager.sendFriendDenyRequest(friendRequestData![name]);
+                          if (!context.mounted) return;
+                          if (f) {
                             setState(() {
                               error = "";
                               success = "Denied $name friend request";
@@ -208,6 +219,7 @@ class FriendsHome extends State<FriendsScreen> {
 
   Widget getPendingWidget(String name, BuildContext context) {
     return SingleChildScrollView(scrollDirection: Axis.vertical, child: Container(
+        width: WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width * 0.5,
         padding: const EdgeInsets.all(15),
         decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(
@@ -224,7 +236,9 @@ class FriendsHome extends State<FriendsScreen> {
               const SizedBox(width: 10),
               ElevatedButton(
                   onPressed: () async {
-                    if (await FriendManager.sendFriendDenyRequest(PendingData![name])) {
+                    bool f = await FriendManager.sendFriendDenyRequest(PendingData![name]);
+                    if (!context.mounted) return;
+                    if (f) {
                       setState(() {
                         error = "";
                         success = "Canceled friend request";
@@ -262,15 +276,14 @@ class FriendsHome extends State<FriendsScreen> {
           httpHeaders: ClientAPI.getProfileHeaders() ?? {});
 
     videoPlayerControllerPfp.addListener(() {
-      setState(() {});
     });
 
     videoPlayerControllerPfp.setLooping(true);
     videoPlayerControllerPfp.setVolume(0);
     videoPlayerControllerPfp.initialize().then((_) => _);
     videoPlayerControllerPfp.play();
-    friendsPfp[friend] = videoPlayerControllerPfp;
 
+    friendsPfp[friend] = videoPlayerControllerPfp;
 
     return SizedBox(height: 60, width: 60, child: ClipRRect(
       borderRadius: BorderRadius.circular(60.0),
@@ -280,7 +293,7 @@ class FriendsHome extends State<FriendsScreen> {
 
   }
 
-  Widget getFriendWidget(Friend friend) {
+  Widget getFriendWidget(Friend friend, BuildContext context) {
     Widget friendPfp;
     if (friend.imageBase64.startsWith("video;")) {
       //setupPfpVideo(friend);
@@ -323,7 +336,8 @@ class FriendsHome extends State<FriendsScreen> {
 
           ElevatedButton(
               onPressed: () async {
-                // TODO open chat
+                data["friendsChat"] = friend;
+                Navigator.of(context, rootNavigator: true).pushNamed("/home", arguments: data);
               },
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey,
@@ -347,10 +361,54 @@ class FriendsHome extends State<FriendsScreen> {
             child: const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.call)),
           ),
 
-
           const SizedBox(width: 10),
 
           Text(friend.stats.substring(1), style: const TextStyle(fontSize: 15.0, color: Colors.white)),
+
+          DropdownButton<String>(
+            //value: "Options",
+            icon: const Icon(Icons.menu),
+            dropdownColor: const Color.fromRGBO(50, 50, 50, 1),
+            style: const TextStyle(color: Color.fromRGBO(50, 50, 50, 1)),
+            onChanged: (String? newValue)  async {
+              if (newValue != null) {
+                if (newValue == "rm") {
+                  bool f = await FriendManager.removeFriend(friend.id);
+                  if (!context.mounted) {
+                    return;
+                  }
+                  if (f) {
+                    setFriends(context);
+
+                  } else {
+                    setState(() {
+                      success = "";
+                      error = "Can't remove ${friend.name} friend";
+                    });
+                  }
+
+                } else if (newValue == 'block') {
+
+                } else if (newValue == "mute") {
+
+                }
+              }
+            },
+            items: const [
+              DropdownMenuItem<String>(
+                  value: 'rm',
+                  child: Text("Remove Friend",
+                      style: TextStyle(color: Colors.white))),
+              DropdownMenuItem<String>(
+                  value: 'block',
+                  child: Text("Block",
+                      style: TextStyle(color: Colors.white))),
+              DropdownMenuItem<String>(
+                  value: 'mute',
+                  child: Text("Mute",
+                      style: TextStyle(color: Colors.white))),
+            ],
+          )
 
 
         ])));
@@ -358,6 +416,7 @@ class FriendsHome extends State<FriendsScreen> {
 
   Future<void> setRequests(BuildContext context) async {
     Map<String, dynamic>? req = await FriendManager.getFriendRequests();
+    if (!context.mounted) return;
     if (req == null || req.isEmpty) {
       setState(() {
           pendingRequests = Container();
@@ -379,10 +438,10 @@ class FriendsHome extends State<FriendsScreen> {
     }
   }
 
-  void setFriendsWidgets() {
+  void setFriendsWidgets(BuildContext context) {
     List<Widget> requests = [];
     for (Friend f in ClientAPI.friends) {
-      requests.add(getFriendWidget(f));
+      requests.add(getFriendWidget(f, context));
     }
     setState(() {
       friends = Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: requests);
@@ -392,9 +451,10 @@ class FriendsHome extends State<FriendsScreen> {
   }
 
   Future<void> setFriends(BuildContext context) async {
-    if (ClientAPI.friends.isEmpty) {
-      if (await FriendManager.getFriends()) {
-        setFriendsWidgets();
+    bool f = await FriendManager.getFriends();
+      if (!context.mounted) return;
+      if (f) {
+        setFriendsWidgets(context);
 
       } else {
         setState(() {
@@ -402,13 +462,11 @@ class FriendsHome extends State<FriendsScreen> {
           error = "Can't get friends";
         });
       }
-    } else {
-      setFriendsWidgets();
-    }
   }
 
   Future<void> setPending(BuildContext context) async {
     Map<String, dynamic>? req = await FriendManager.getPendingRequests();
+    if (!context.mounted) return;
     if (req == null || req.isEmpty) {
       setState(() {
         pendingRequests = Container();

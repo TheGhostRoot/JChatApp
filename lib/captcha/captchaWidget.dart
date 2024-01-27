@@ -14,10 +14,12 @@ class CaptchaScreen extends StatefulWidget {
   }
 
   @override
-  CaptchaHome createState() => CaptchaHome();
+  CaptchaHome createState() => CaptchaHome(data);
 }
 
 class CaptchaHome extends State<CaptchaScreen> {
+  late Map<dynamic, dynamic> data;
+
   String? captcha_base64;
   String error = "";
 
@@ -30,13 +32,21 @@ class CaptchaHome extends State<CaptchaScreen> {
       oneSec,
           (Timer timer) {
         if (_start == 0) {
-          setState(() {
-            timer.cancel();
-          });
+          try {
+            setState(() {
+              timer.cancel();
+            });
+          } catch (e) {
+            return;
+          }
         } else {
-          setState(() {
-            _start--;
-          });
+          try {
+            setState(() {
+              _start--;
+            });
+          } catch (e) {
+            return;
+          }
         }
       },
     );
@@ -47,7 +57,8 @@ class CaptchaHome extends State<CaptchaScreen> {
   late double w;
   late double h;
 
-  CaptchaHome() {
+  CaptchaHome(Map<dynamic, dynamic> gdata) {
+    data = gdata;
     var size = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize;
     w = size.width;
     h = size.height;
@@ -62,12 +73,13 @@ class CaptchaHome extends State<CaptchaScreen> {
         error = "Can't get captcha";
         return;
       }
-      setState(() {
-        captcha_base64 = captcha;
-        vis = Visibility(
+      try {
+        setState(() {
+          captcha_base64 = captcha;
+          vis = Visibility(
             visible: captcha_base64 != null,
             child: captcha_base64 != null
-                ?  DecoratedBox(
+                ? DecoratedBox(
               decoration: BoxDecoration(
                 image: DecorationImage(
                   fit: BoxFit.fill,
@@ -76,12 +88,13 @@ class CaptchaHome extends State<CaptchaScreen> {
               ),
             )
                 : const SizedBox.shrink(),
-        );
-        startTimer();
-      });
+          );
+          startTimer();
+        });
+      } catch(e) {
+        return;
+      }
     });
-
-
 
   }
 
@@ -136,13 +149,15 @@ class CaptchaHome extends State<CaptchaScreen> {
           const SizedBox(height: 20.0),
           ElevatedButton(
             onPressed: () async {
-              if (_start > 0 && await CaptchaManager.solveCaptcha(captchaController.text)) {
-                widget.data["captcha_stats"] = true;
-                Navigator.pushNamed(context, widget.data["on_success_path"], arguments: widget.data);
+              bool f = await CaptchaManager.solveCaptcha(captchaController.text);
+              if (!context.mounted) return;
+              if (_start > 0 && f) {
+                data["captcha_stats"] = true;
+                Navigator.pushNamed(context, data["on_success_path"], arguments: data);
 
               } else {
-                widget.data["captcha_stats"] = false;
-                Navigator.pushNamed(context, widget.data["on_fail_path"], arguments: widget.data);
+                data["captcha_stats"] = false;
+                Navigator.pushNamed(context, data["on_fail_path"], arguments: data);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -160,7 +175,7 @@ class CaptchaHome extends State<CaptchaScreen> {
               const SizedBox(height: 10.0),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, widget.data["on_fail_path"], arguments: widget.data);
+                  Navigator.pushNamed(context, data["on_fail_path"], arguments: data);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.cyan,
