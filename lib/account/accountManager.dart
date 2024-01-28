@@ -43,7 +43,7 @@ class AccountManager {
         new_owner
         leave
         friend_requests
-    */
+
 
     Map<dynamic, dynamic> settings = {};
     settings["pfp"] = "";
@@ -69,13 +69,13 @@ class AccountManager {
     String? settingsJwt = ClientAPI.jwt.generateGlobalJwt(settings, false);
     if (settingsJwt == null) {
       return false;
-    }
+    }*/
 
     Map<dynamic, dynamic> claims = {};
     claims["username"] = name;
     claims["email"] = email;
     claims["password"] = password;
-    claims["settings"] = settingsJwt;
+    //claims["settings"] = settingsJwt;
 
     String? authToken = ClientAPI.jwt.generateGlobalJwt(claims, true);
     if (authToken == null) {

@@ -35,7 +35,7 @@ class FriendManager {
     ClientAPI.friends.clear();
     for (var f in allFriends) {
       var ff = f as Map<String, dynamic>;
-      ClientAPI.friends.add(Friend(ff["name"], ff["id"], ff["pfpBase64"], ff["channel_id"], ff["stats"], ff["badges"]));
+      ClientAPI.friends.add(Friend(ff["name"], ff["id"], ff["pfpBase64"], ff["stats"], ff["badges"]));
     }
     return true;
   }

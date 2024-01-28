@@ -1,30 +1,19 @@
 
+import 'package:jchatapp/friends/chat/message.dart';
+
 class Friend {
 
   String name;
   String imageBase64; // video;
   int id;
-  int channel_id;
   String stats;
   String badges;
+  late List<Message> messages;
 
-  Friend(this.name, this.id, this.imageBase64, this.channel_id, this.stats, this.badges);
+  Friend(this.name, this.id, this.imageBase64, this.stats, this.badges);
 
-  String getName() {
-    return name;
-  }
+  void addMessage(Map<dynamic, dynamic> msg) {
 
-  int getID() {
-    return id;
-  }
-
-  String getImageBase64() {
-    return imageBase64;
-  }
-
-
-  int getDMChannelID() {
-    return channel_id;
   }
 
 }

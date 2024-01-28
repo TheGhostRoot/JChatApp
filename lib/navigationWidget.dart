@@ -18,19 +18,13 @@ class NavigationScreen extends StatefulWidget {
 class NavigationHome extends State<NavigationScreen> {
   late Map<dynamic, dynamic> data;
 
-  int currentPageIndex = 2;
+  int currentPageIndex = 0;
 
   late Widget friends;
 
   NavigationHome(Map<dynamic, dynamic> gdata) {
     data = gdata;
-    if (data.containsKey("goFriends")) {
-      data.remove("goFriends");
-      currentPageIndex = 1;
-    }
-
     if (data.containsKey("friendsChat")) {
-      currentPageIndex = 1;
       friends = FriendChatScreen(data);
 
     } else {
@@ -84,9 +78,7 @@ class NavigationHome extends State<NavigationScreen> {
           )),
       home: Scaffold(
       bottomNavigationBar: NavigationBar(destinations: const [
-        NavigationDestination(icon: Icon(Icons.people_alt, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Groups'),
         NavigationDestination(icon: Icon(Icons.emoji_people_rounded, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Friends'),
-        NavigationDestination(icon: Icon(Icons.newspaper, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Posts'),
         NavigationDestination(icon: Icon(Icons.person_sharp, color: Color.fromRGBO(163, 163, 163, 1)), label: 'Profile'),
       ],
         selectedIndex: currentPageIndex,
@@ -100,7 +92,7 @@ class NavigationHome extends State<NavigationScreen> {
         indicatorColor: const Color.fromRGBO(237, 237, 237, 1),
         indicatorShape: const CircleBorder()
       ),
-        body: [const Text("Groups"), friends, const Text("Posts"), ProfileScreen(data)][currentPageIndex]
+        body: [friends, ProfileScreen(data)][currentPageIndex]
     ));
   }
 }

@@ -1,10 +1,10 @@
 import 'package:jchatapp/main.dart';
 import 'package:jchatapp/requestHandler.dart';
 
-class DMManager {
+class FriendChatManager {
 
-  static Future<Map<dynamic, dynamic>?> getMessages(int? channelId, int amount) async {
-    if (ClientAPI.user_id == 0 || channelId == null || channelId == 0) {
+  static Future<Map<dynamic, dynamic>?> getMessages(int friend_id) async {
+    if (ClientAPI.user_id == 0) {
       return null;
     }
 
@@ -14,8 +14,7 @@ class DMManager {
     }
 
     Map<dynamic, dynamic> claims = {};
-    claims["channel_id"] = channelId;
-    claims["amount"] = amount;
+    claims["friend_id"] = friend_id;
 
     String? authData = ClientAPI.jwt.generateUserJwt(claims);
     if (authData == null) {
@@ -36,8 +35,8 @@ class DMManager {
   }
 
 
-  static Future<int?> sendMessage(Map<dynamic, dynamic>? data) async {
-    if (ClientAPI.user_id == 0 || data == null) {
+  static Future<Map<dynamic, dynamic>?> sendMessage(int friend_id, String message) async {
+    if (ClientAPI.user_id == 0) {
       return null;
     }
 
@@ -46,7 +45,20 @@ class DMManager {
       return null;
     }
 
-    String? authData = ClientAPI.jwt.generateUserJwt(data);
+    /*
+    var lastEle;
+
+    try {
+      lastEle = RegExp(r'\\{.*?\\}')
+          .allMatches(message)
+          .last[0];
+    } catch(e) {
+      lastEle = "";
+    }
+
+     */
+
+    String? authData = ClientAPI.jwt.generateUserJwt({"message": message, "friend_id": friend_id});
     if (authData == null) {
       return null;
     }
@@ -57,11 +69,11 @@ class DMManager {
 
     String? res = await Requests.post("${ClientAPI.server}/friend/chat", headers: header);
     Map<dynamic, dynamic>? serData = ClientAPI.jwt.getData(res);
-    if (serData == null || !serData.containsKey("message_id")) {
+    if (serData == null || !serData.containsKey("message_data")) {
       return null;
     }
 
-    return serData["message_id"];
+    return serData["message_data"] as Map;
   }
 
 

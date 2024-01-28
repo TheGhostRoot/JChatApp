@@ -259,10 +259,7 @@ Future<void> main() async {
     iOS: true
   );
 
-  String? bad = ClientAPI.jwt.generateGlobalJwt({"badges": [{"name": "Chipi Chapa", "icon": "images/chipichapa_badge.jpg"},
-    {"name": "Bug Hunter", "icon": "images/bughunter_badge.jpg"},
-    {"name": "Staff", "icon": "images/staff_badge.jpg"},
-    {"name": "Supporter", "icon": "images/supporter_badge.jpg"}]}, false);
+  String? bad = ClientAPI.jwt.generateGlobalJwt({"badges": [{"name": "Gamer", "icon": "images/controller.png"}]}, false);
 
   print(bad);
 
@@ -372,24 +369,28 @@ class _WelcomePage extends State<JChat> {
               headers: ClientAPI.getProfileHeadersWithRememberMe(
                   clientConfig.config["remember_me"]["id"]));
           pfp_base64_remember_me ??= await ClientAPI.getDefaultPfp();
-          setState(() {
-            pfp_widget = Container(
-              width: 100.0,
-              height: 100.0,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.cyan,
-              ),
-              child: Center(
-                child: CircleAvatar(
-                  radius: 50.0,
-                  backgroundImage: Image
-                      .memory(base64Decode(pfp_base64_remember_me!))
-                      .image,
+          try {
+            setState(() {
+              pfp_widget = Container(
+                width: 100.0,
+                height: 100.0,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.cyan,
                 ),
-              ),
-            );
-          });
+                child: Center(
+                  child: CircleAvatar(
+                    radius: 50.0,
+                    backgroundImage: Image
+                        .memory(base64Decode(pfp_base64_remember_me!))
+                        .image,
+                  ),
+                ),
+              );
+            });
+          } catch(e) {
+            return;
+          }
         }
       }
       if (data.containsKey("captcha_stats") && data["captcha_stats"]) {
@@ -397,15 +398,23 @@ class _WelcomePage extends State<JChat> {
           var map = clientConfig.getDefaultConfig();
           data["client_config"] = ClientConfig();
           clientConfig.updateConfig(map);
-          setState(() {
-            successForgetPassword = "Successfully reset local data";
-          });
+          try {
+            setState(() {
+              successForgetPassword = "Successfully reset local data";
+            });
+          } catch(e) {
+            return;
+          }
 
         } else if (data.containsKey("email") && data.containsKey("password")) {
           if (!await AccountManager.getAccount(data["email"], data["password"], null)) {
-            setState(() {
-              error = "Can't login to this account";
-            });
+            try {
+              setState(() {
+                error = "Can't login to this account";
+              });
+            } catch(e) {
+              return;
+            }
             data.remove("captcha_stats");
             data.remove("email");
             data.remove("password");
@@ -414,7 +423,8 @@ class _WelcomePage extends State<JChat> {
 
           } else {
             Map<dynamic, dynamic>? map = await ProfileManager.getProfile(ClientAPI.user_id);
-            if (isRememberMe) {
+            if (data.containsKey("isRememberMe") && data["isRememberMe"] as bool) {
+              data.remove("isRememberMe");
               if (map != null) {
                 var pfp = map["pfp"] as String;
                 ClientConfig clientConfig = (data["client_config"] as ClientConfig);
@@ -452,9 +462,13 @@ class _WelcomePage extends State<JChat> {
 
         } else if (data.containsKey("remember_me_id")) {
           if (!await AccountManager.getAccount(null, null, data["remember_me_id"])) {
-            setState(() {
-              error = "Can't login to this account";
-            });
+            try {
+              setState(() {
+                error = "Can't login to this account";
+              });
+            } catch(e) {
+              return;
+            }
             data.remove("captcha_stats");
             data.remove("email");
             data.remove("password");
@@ -644,6 +658,7 @@ class _WelcomePage extends State<JChat> {
                                 setState(() {
                                   if (value != null) {
                                     isRememberMe = value;
+                                    data["isRememberMe"] = isRememberMe;
                                   }
                                 });
                               },

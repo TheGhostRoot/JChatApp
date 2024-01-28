@@ -219,7 +219,7 @@ class FriendsHome extends State<FriendsScreen> {
 
   Widget getPendingWidget(String name, BuildContext context) {
     return SingleChildScrollView(scrollDirection: Axis.vertical, child: Container(
-        width: WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width * 0.5,
+        width: WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width * 0.5 + 250,
         padding: const EdgeInsets.all(15),
         decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(
@@ -311,7 +311,7 @@ class FriendsHome extends State<FriendsScreen> {
 
     //double w = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
     return SingleChildScrollView(scrollDirection: Axis.horizontal, child: Container(
-      width: WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width * 0.5,
+      width: WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width * 0.5 +250,
         padding: const EdgeInsets.all(15),
         decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(
