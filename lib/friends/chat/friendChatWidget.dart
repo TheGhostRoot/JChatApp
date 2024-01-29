@@ -59,6 +59,7 @@ class FriendChatHome extends State<FriendChatScreen> {
   }
 
   void _handleControllerNotification() {
+    /*
     print('Notified through the scroll controller.');
     // Access the position directly through the controller for details on the
     // scroll position.
@@ -69,6 +70,8 @@ class FriendChatHome extends State<FriendChatScreen> {
     if (scrollController.position.userScrollDirection == ScrollDirection.reverse) {
       print("Down");
     }
+
+     */
   }
 
   @override
@@ -237,12 +240,12 @@ class FriendChatHome extends State<FriendChatScreen> {
           Container(
             //height: t * 25,
             decoration: const BoxDecoration(
-              color: Colors.blueAccent,
+              color: Color.fromRGBO(120, 120, 120, 100),
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(5.0),
                   top: Radius.circular(5.0),
                 )),
-            padding: const EdgeInsets.only(right: 200, top: 5, bottom: 5),
+            padding: const EdgeInsets.only(left: 250, top: 5, bottom: 5),
             child: Text(updatedMessage),
           )
         ]));
@@ -252,16 +255,17 @@ class FriendChatHome extends State<FriendChatScreen> {
 
         msgWidget = SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
           Container(
-            height: msgMessage.length * 5,
+            //height: t * 25,
             decoration: const BoxDecoration(
-                color: Colors.blue,
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(20.0),
-                top: Radius.circular(20.0),
-              )),
-            padding: const EdgeInsets.only(left: 20, top: 5, bottom: 5),
+                color: Color.fromRGBO(90, 90, 90, 100),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(5.0),
+                  top: Radius.circular(5.0),
+                )),
+            padding: const EdgeInsets.only(right: 250, top: 5, bottom: 5),
             child: Text(updatedMessage),
-          )
+          ),
+          SizedBox(width: WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width * 0.3,),
         ]));
       }
       messageWidgest.add(msgWidget);
